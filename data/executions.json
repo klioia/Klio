@@ -1,0 +1,98 @@
+[
+  {
+    "id": "execution_1775589180371_0",
+    "userId": "user-1",
+    "automationId": "auto-01",
+    "automationName": "Lead do Instagram para WhatsApp - 2a etapa",
+    "channel": "whatsapp",
+    "contactName": "Marina",
+    "recipient": "5511999999999",
+    "status": "mock_sent",
+    "preview": "Se quiser, eu posso continuar aqui e te mostrar o melhor plano da Klio.",
+    "createdAt": "2026-04-07T19:13:00.372Z"
+  },
+  {
+    "id": "execution_1775578636473_1",
+    "userId": "user-1",
+    "automationId": "auto-01",
+    "automationName": "Lead do Instagram para WhatsApp - 2a etapa",
+    "channel": "whatsapp",
+    "contactName": "Carlos",
+    "recipient": "5511888888888",
+    "status": "mock_sent",
+    "preview": "Se quiser, eu posso continuar aqui e te mostrar o melhor plano da Klio.",
+    "createdAt": "2026-04-07T16:17:16.473Z"
+  },
+  {
+    "id": "execution_1775578636473_0",
+    "userId": "user-1",
+    "automationId": "auto-01",
+    "automationName": "Lead do Instagram para WhatsApp - 2a etapa",
+    "channel": "whatsapp",
+    "contactName": "Carlos",
+    "recipient": "5511777777777",
+    "status": "mock_sent",
+    "preview": "Se quiser, eu posso continuar aqui e te mostrar o melhor plano da Klio.",
+    "createdAt": "2026-04-07T16:17:16.473Z"
+  },
+  {
+    "id": "execution_1775577842766",
+    "userId": "user-1",
+    "automationId": "auto-01",
+    "automationName": "Lead do Instagram para WhatsApp",
+    "channel": "whatsapp",
+    "contactName": "Carlos",
+    "recipient": "5511777777777",
+    "status": "mock_sent",
+    "preview": "Oi Carlos, posso te mandar o checkout Pix agora?",
+    "createdAt": "2026-04-07T16:04:02.766Z"
+  },
+  {
+    "id": "execution_1775577761119",
+    "userId": "user-1",
+    "automationId": "auto-01",
+    "automationName": "Lead do Instagram para WhatsApp",
+    "channel": "whatsapp",
+    "contactName": "Carlos",
+    "recipient": "5511888888888",
+    "status": "mock_sent",
+    "preview": "Oi Carlos, posso te mandar o checkout Pix agora?",
+    "createdAt": "2026-04-07T16:02:41.119Z"
+  },
+  {
+    "id": "execution_1775577518295",
+    "userId": "user-1",
+    "automationId": "auto-01",
+    "automationName": "Lead do Instagram para WhatsApp",
+    "channel": "whatsapp",
+    "contactName": "Marina",
+    "recipient": "5511999999999",
+    "status": "mock_sent",
+    "preview": "Oi Marina, posso te mandar o checkout Pix agora?",
+    "createdAt": "2026-04-07T15:58:38.295Z"
+  },
+  {
+    "id": "execution_1775574405988",
+    "userId": "user-1",
+    "automationId": "auto-01",
+    "automationName": "Lead do Instagram para WhatsApp",
+    "channel": "whatsapp",
+    "contactName": "Marina",
+    "recipient": "5511999999999",
+    "status": "mock_sent",
+    "preview": "Oi Marina, posso te mandar o checkout Pix agora?",
+    "createdAt": "2026-04-07T15:06:45.988Z"
+  },
+  {
+    "id": "exec-1",
+    "userId": "user-1",
+    "automationId": "auto-01",
+    "automationName": "Lead do Instagram para WhatsApp",
+    "channel": "whatsapp",
+    "contactName": "Marina",
+    "recipient": "5511999999999",
+    "status": "mock_sent",
+    "preview": "Oi Marina, posso te mandar o checkout Pix agora?",
+    "createdAt": "2026-04-07T15:00:00.000Z"
+  }
+]

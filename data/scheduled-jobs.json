@@ -1,0 +1,41 @@
+[
+  {
+    "id": "job_1775577842844",
+    "userId": "user-1",
+    "automationId": "auto-01",
+    "automationName": "Lead do Instagram para WhatsApp",
+    "channel": "whatsapp",
+    "contactName": "Carlos",
+    "recipient": "5511777777777",
+    "message": "Se quiser, eu posso continuar aqui e te mostrar o melhor plano da Klio.",
+    "scheduledFor": "2026-04-07T16:14:02.844Z",
+    "status": "processed",
+    "createdAt": "2026-04-07T16:04:02.844Z"
+  },
+  {
+    "id": "job_1775577761166",
+    "userId": "user-1",
+    "automationId": "auto-01",
+    "automationName": "Lead do Instagram para WhatsApp",
+    "channel": "whatsapp",
+    "contactName": "Carlos",
+    "recipient": "5511888888888",
+    "message": "Se quiser, eu posso continuar aqui e te mostrar o melhor plano da Klio.",
+    "scheduledFor": "2026-04-07T16:12:41.166Z",
+    "status": "processed",
+    "createdAt": "2026-04-07T16:02:41.166Z"
+  },
+  {
+    "id": "job-1",
+    "userId": "user-1",
+    "automationId": "auto-01",
+    "automationName": "Lead do Instagram para WhatsApp",
+    "channel": "whatsapp",
+    "contactName": "Marina",
+    "recipient": "5511999999999",
+    "message": "Se quiser, eu posso continuar aqui e te mostrar o melhor plano da Klio.",
+    "scheduledFor": "2026-04-07T16:20:00.000Z",
+    "status": "processed",
+    "createdAt": "2026-04-07T16:10:00.000Z"
+  }
+]

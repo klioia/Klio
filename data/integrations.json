@@ -1,0 +1,25 @@
+{
+  "whatsapp": {
+    "tenantId": "tenant-1",
+    "connected": false,
+    "label": "WhatsApp Business Cloud API",
+    "phoneNumberId": "",
+    "accessToken": "",
+    "verifyToken": ""
+  },
+  "instagram": {
+    "tenantId": "tenant-1",
+    "connected": false,
+    "label": "Instagram Messaging API",
+    "appId": "",
+    "accessToken": "",
+    "verifyToken": ""
+  },
+  "pix": {
+    "tenantId": "tenant-1",
+    "connected": false,
+    "label": "Mercado Pago / Asaas / Banco",
+    "provider": "mock",
+    "accessToken": ""
+  }
+}

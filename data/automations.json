@@ -1,0 +1,20 @@
+[
+  {
+    "id": "auto-01",
+    "userId": "user-1",
+    "name": "Lead do Instagram para WhatsApp",
+    "channel": "multi",
+    "trigger": "{\"triggerType\":\"keyword\",\"keyword\":\"quero\",\"actionType\":\"handoff_whatsapp\",\"secondMessage\":\"Se quiser, eu posso continuar aqui e te mostrar o melhor plano da Klio.\",\"delayMinutes\":10}",
+    "status": "Ativa",
+    "message": "Oi {{nome}}, posso te mandar o checkout Pix agora?"
+  },
+  {
+    "id": "auto-02",
+    "userId": "user-1",
+    "name": "Resposta inicial no WhatsApp",
+    "channel": "whatsapp",
+    "trigger": "{\"triggerType\":\"new_message\",\"keyword\":\"\",\"actionType\":\"reply_same_channel\",\"secondMessage\":\"Posso seguir e te mostrar como automatizar seu fluxo na Klio.\",\"delayMinutes\":5}",
+    "status": "Ativa",
+    "message": "Oi {{nome}}, recebi sua mensagem e a Klio pode continuar esse atendimento de forma automatizada."
+  }
+]
