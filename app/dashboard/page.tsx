@@ -2,11 +2,11 @@ import { AppShell } from "@/components/app-shell";
 import { AutoProcessJobs } from "@/components/auto-process-jobs";
 import { FlowBuilder } from "@/components/flow-builder";
 import { ProcessJobsButton } from "@/components/process-jobs-button";
-import { Topbar } from "@/components/topbar";
 import { humanizeTrigger } from "@/lib/automation-utils";
 import { requireSession } from "@/lib/auth";
 import { dashboardStats, inbox } from "@/lib/mock-data";
 import { AutomationRecord, ScheduledJobRecord, listAutomations, listScheduledJobs } from "@/lib/repositories";
+import Link from "next/link";
 
 export default async function DashboardPage() {
   const session = await requireSession();
@@ -15,13 +15,34 @@ export default async function DashboardPage() {
   const pendingJobs = (scheduledJobs as ScheduledJobRecord[]).filter((job) => job.status === "pending").length;
 
   return (
-    <>
-      <Topbar />
-      <AppShell
-        userName={session.name}
-        title="Centro de comando da automacao conversacional."
-        description="Monitore eventos, construa fluxos, acompanhe a fila e opere seus bots de WhatsApp e Instagram em um unico painel."
-      >
+    <AppShell
+      userName={session.name}
+      title="Workspace real da Klio."
+      description="Crie fluxos, conecte canais, acompanhe a fila e opere a automacao de WhatsApp e Instagram em uma unica area."
+    >
+      <section className="card panel">
+        <div className="flow-item">
+          <div>
+            <strong>Comece por aqui</strong>
+            <div className="mini">Os atalhos principais para configurar e usar a plataforma de verdade.</div>
+          </div>
+          <span className="pricing-badge">Operacao</span>
+        </div>
+        <div className="flow-list" style={{ marginTop: 18 }}>
+          <Link className="workspace-link" href="/integrations">
+            <strong>Conectar canais</strong>
+            <span className="mini">WhatsApp, Instagram e webhook</span>
+          </Link>
+          <Link className="workspace-link" href="/automations">
+            <strong>Abrir fluxos</strong>
+            <span className="mini">biblioteca e logica da automacao</span>
+          </Link>
+          <Link className="workspace-link" href="/leads">
+            <strong>Ver leads</strong>
+            <span className="mini">contatos, contexto e origem</span>
+          </Link>
+        </div>
+      </section>
         <div className="kpi-grid" style={{ marginTop: 24 }}>
           {dashboardStats.map((item) => (
             <div className="kpi" key={item.label}>
@@ -43,7 +64,7 @@ export default async function DashboardPage() {
               <div className="orchestration-header">
                 <div>
                   <strong>Engine de execucao</strong>
-                  <div className="mini">estado da fila, processamento e automacoes em curso</div>
+                  <div className="mini">fila, worker e disparos em andamento</div>
                 </div>
                 <span className="pricing-badge">worker ativo</span>
               </div>
@@ -85,7 +106,7 @@ export default async function DashboardPage() {
               </div>
             </section>
             <section className="card panel">
-              <strong>Fluxos ativos na engine</strong>
+              <strong>Fluxos ativos agora</strong>
               <div className="flow-list" style={{ marginTop: 18 }}>
                 {(automations as AutomationRecord[]).map((item) => (
                   <div className="flow-item flow-item-rich" key={item.id}>
@@ -100,7 +121,6 @@ export default async function DashboardPage() {
             </section>
           </div>
         </div>
-      </AppShell>
-    </>
+    </AppShell>
   );
 }

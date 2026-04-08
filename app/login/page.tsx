@@ -9,9 +9,9 @@ export default function LoginPage() {
         <div className="shell" style={{ maxWidth: 560 }}>
           <section className="card panel auth-card">
             <span className="eyebrow">Acesso interno</span>
-            <h1 className="section-title">Entre no centro de controle da Klio.</h1>
+            <h1 className="section-title">Entre na area operacional da Klio.</h1>
             <p className="muted">
-              Acesse seus bots, fluxos, execucoes e integracoes em um workspace mais tecnico, limpo e pronto para operacao.
+              Acesse fluxos, leads, execucoes e integracoes em um painel feito para usar a plataforma de verdade.
             </p>
             <LoginForm />
             <div className="divider" />

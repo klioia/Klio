@@ -11,9 +11,9 @@ type AppShellProps = {
 };
 
 const links = [
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard", label: "Painel" },
   { href: "/leads", label: "Leads" },
-  { href: "/automations", label: "Automacoes" },
+  { href: "/automations", label: "Fluxos" },
   { href: "/executions", label: "Execucoes" },
   { href: "/scheduled", label: "Agendados" },
   { href: "/worker", label: "Worker" },
@@ -29,11 +29,11 @@ export function AppShell({ userName, title, description, children }: AppShellPro
           <div style={{ margin: "10px 0 6px" }}>
             <Brand compact />
           </div>
-          <h2 style={{ marginBottom: 6 }}>Klio Control Grid</h2>
+          <h2 style={{ marginBottom: 6 }}>Painel operacional</h2>
           <p className="mini">Logado como {userName}</p>
           <div className="workspace-status" style={{ marginTop: 18 }}>
             <div className="workspace-status-dot" />
-            <span className="mini">Orquestrador online</span>
+            <span className="mini">Engine online</span>
           </div>
           <div style={{ marginTop: 18 }}>
             <LogoutButton />
@@ -42,7 +42,7 @@ export function AppShell({ userName, title, description, children }: AppShellPro
             {links.map((link) => (
               <Link className="workspace-link" href={link.href} key={link.href}>
                 <strong>{link.label}</strong>
-                <span className="mini">abrir modulo</span>
+                <span className="mini">abrir area</span>
               </Link>
             ))}
           </div>

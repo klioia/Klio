@@ -1,6 +1,5 @@
 import { AppShell } from "@/components/app-shell";
 import { IntegrationsForm } from "@/components/integrations-form";
-import { Topbar } from "@/components/topbar";
 import { requireSession } from "@/lib/auth";
 import { getIntegrations } from "@/lib/repositories";
 
@@ -16,15 +15,12 @@ export default async function IntegrationsPage() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
   return (
-    <>
-      <Topbar />
-      <AppShell
-        userName={session.name}
-        title="Camada de integracoes da automacao."
-        description="Conecte canais, credenciais e webhooks da operacao pela interface da Klio, sem depender so de configuracao manual."
-      >
+    <AppShell
+      userName={session.name}
+      title="Integracoes da operacao."
+      description="Conecte canais, credenciais e webhooks pela interface da Klio para colocar a automacao no ar."
+    >
         <IntegrationsForm appUrl={appUrl} initialState={integrations} />
-      </AppShell>
-    </>
+    </AppShell>
   );
 }

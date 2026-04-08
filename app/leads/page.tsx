@@ -1,5 +1,4 @@
 import { AppShell } from "@/components/app-shell";
-import { Topbar } from "@/components/topbar";
 import { requireSession } from "@/lib/auth";
 import { listLeads } from "@/lib/repositories";
 
@@ -19,13 +18,11 @@ export default async function LeadsPage() {
   const leads = await listLeads(session.id);
 
   return (
-    <>
-      <Topbar />
-      <AppShell
-        userName={session.name}
-        title="Seus leads centralizados."
-        description="Aqui voce acompanha origem, etapa do funil e o ultimo contexto de cada conversa."
-      >
+    <AppShell
+      userName={session.name}
+      title="Leads e conversas."
+      description="Acompanhe origem, etapa do funil e o ultimo contexto de cada contato."
+    >
         <div className="flow-list">
           {(leads as Lead[]).map((lead) => (
             <article className="card panel" key={lead.id}>
@@ -48,7 +45,6 @@ export default async function LeadsPage() {
             </article>
           ))}
         </div>
-      </AppShell>
-    </>
+    </AppShell>
   );
 }
