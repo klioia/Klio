@@ -11,16 +11,16 @@ type Integrations = {
 
 export default async function IntegrationsPage() {
   const session = await requireSession();
-  const integrations = await getIntegrations(session.tenantId) as Integrations;
+  const integrations = (await getIntegrations(session.tenantId)) as Integrations;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
   return (
     <AppShell
       userName={session.name}
-      title="Integracoes da operacao."
-      description="Conecte canais, credenciais e webhooks pela interface da Klio para colocar a automacao no ar."
+      title="Integrações da operação"
+      description="Conecte canais, salve credenciais, copie o callback e valide tudo pela interface da Klio."
     >
-        <IntegrationsForm appUrl={appUrl} initialState={integrations} />
+      <IntegrationsForm appUrl={appUrl} initialState={integrations} />
     </AppShell>
   );
 }
