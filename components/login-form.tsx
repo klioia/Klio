@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 
 export function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@klio.local");
-  const [password, setPassword] = useState("123456");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -37,13 +37,19 @@ export function LoginForm() {
     <form onSubmit={handleSubmit} style={{ marginTop: 24 }}>
       <label style={{ display: "block", marginTop: 18 }}>
         <span className="mini">Email</span>
-        <input className="input" value={email} onChange={(event) => setEmail(event.target.value)} />
+        <input
+          className="input"
+          placeholder="voce@empresa.com"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+        />
       </label>
       <label style={{ display: "block", marginTop: 18 }}>
         <span className="mini">Senha</span>
         <input
           className="input"
           type="password"
+          placeholder="Digite sua senha"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
@@ -55,7 +61,7 @@ export function LoginForm() {
         </button>
       </div>
       <p className="mini" style={{ marginTop: 18 }}>
-        Ambiente demo: admin@klio.local / 123456
+        Se for seu primeiro acesso, crie sua conta ou use o usuario configurado no ambiente seguro.
       </p>
     </form>
   );

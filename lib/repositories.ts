@@ -87,6 +87,22 @@ type LocalIntegrations = {
   pix: { tenantId?: string; connected: boolean; label: string; provider: string; accessToken?: string };
 };
 
+function getBootstrapAdminConfig() {
+  const email = process.env.BOOTSTRAP_ADMIN_EMAIL?.trim();
+  const password = process.env.BOOTSTRAP_ADMIN_PASSWORD?.trim();
+
+  if (!email || !password) {
+    return null;
+  }
+
+  return {
+    name: process.env.BOOTSTRAP_ADMIN_NAME?.trim() || "Owner Klio",
+    email,
+    password,
+    company: process.env.BOOTSTRAP_ADMIN_COMPANY?.trim() || "Klio"
+  };
+}
+
 export async function findUserByCredentials(email: string, password: string): Promise<SessionUser | null> {
   if (hasDatabaseUrl()) {
     const prisma = getPrismaClient();
@@ -174,29 +190,68 @@ export async function createUser(input: {
 }
 
 export async function ensureSeedUser() {
-  const defaultEmail = "admin@klio.local";
-  const defaultPassword = "123456";
-  const defaultHash = hashPassword(defaultPassword);
+  const bootstrap = getBootstrapAdminConfig();
 
   if (hasDatabaseUrl()) {
+    if (!bootstrap) {
+      return;
+    }
+
     const prisma = getPrismaClient();
-    const existing = await prisma.user.findUnique({ where: { email: defaultEmail } });
+    const existing = await prisma.user.findUnique({ where: { email: bootstrap.email } });
+    const legacy = await prisma.user.findUnique({ where: { email: "admin@klio.local" } });
+    const bootstrapHash = hashPassword(bootstrap.password);
 
     if (!existing) {
-      const tenant = await prisma.tenant.create({
-        data: {
-          name: "Klio",
-          slug: "klio"
-        }
-      });
+      if (legacy) {
+        let tenantId = legacy.tenantId;
 
-      await prisma.user.create({
+        const tenant = await prisma.tenant.findUnique({ where: { id: tenantId } });
+
+        if (tenant && tenant.name !== bootstrap.company) {
+          await prisma.tenant.update({
+            where: { id: tenant.id },
+            data: {
+              name: bootstrap.company,
+              slug: bootstrap.company.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+            }
+          });
+        }
+
+        await prisma.user.update({
+          where: { id: legacy.id },
+          data: {
+            name: bootstrap.name,
+            email: bootstrap.email,
+            passwordHash: bootstrapHash,
+            company: bootstrap.company
+          }
+        });
+      } else {
+        const tenant = await prisma.tenant.create({
+          data: {
+            name: bootstrap.company,
+            slug: bootstrap.company.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+          }
+        });
+
+        await prisma.user.create({
+          data: {
+            tenantId: tenant.id,
+            name: bootstrap.name,
+            email: bootstrap.email,
+            passwordHash: bootstrapHash,
+            company: bootstrap.company
+          }
+        });
+      }
+    } else if (!verifyPassword(bootstrap.password, existing.passwordHash) || existing.name !== bootstrap.name || existing.company !== bootstrap.company) {
+      await prisma.user.update({
+        where: { id: existing.id },
         data: {
-          tenantId: tenant.id,
-          name: "Admin Klio",
-          email: defaultEmail,
-          passwordHash: defaultHash,
-          company: "Klio"
+          name: bootstrap.name,
+          passwordHash: bootstrapHash,
+          company: bootstrap.company
         }
       });
     }
@@ -205,26 +260,60 @@ export async function ensureSeedUser() {
   }
 
   const users = await readCollection<LocalUser[]>("users");
-  const alreadyHasHash = users.some((user) => user.passwordHash);
 
-  if (alreadyHasHash) {
+  if (!bootstrap) {
     return;
   }
 
-  const upgradedUsers = users.map((user) =>
-    user.email === defaultEmail
-      ? { ...user, passwordHash: defaultHash, password: undefined }
-      : user.password
-        ? { ...user, passwordHash: hashPassword(user.password), password: undefined }
+  const bootstrapHash = hashPassword(bootstrap.password);
+  const existing = users.find((user) => user.email === bootstrap.email);
+  const legacy = users.find((user) => user.email === "admin@klio.local");
+
+  if (existing) {
+    const nextUsers = users.map((user) =>
+      user.id === existing.id
+        ? {
+            ...user,
+            name: bootstrap.name,
+            passwordHash: bootstrapHash,
+            company: bootstrap.company
+          }
         : user
-  );
+    );
 
-  const normalizedUsers = upgradedUsers.map((user) => {
-    const { password, ...rest } = user;
-    return rest;
-  });
+    await writeCollection("users", nextUsers);
+    return;
+  }
 
-  await writeCollection("users", normalizedUsers);
+  if (legacy) {
+    const nextUsers = users.map((user) =>
+      user.id === legacy.id
+        ? {
+            ...user,
+            name: bootstrap.name,
+            email: bootstrap.email,
+            passwordHash: bootstrapHash,
+            company: bootstrap.company
+          }
+        : user
+    );
+
+    await writeCollection("users", nextUsers);
+    return;
+  }
+
+  const tenantSlug = bootstrap.company.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  await writeCollection("users", [
+    {
+      id: `user_${Date.now()}`,
+      tenantId: `tenant_${tenantSlug || Date.now()}`,
+      name: bootstrap.name,
+      email: bootstrap.email,
+      passwordHash: bootstrapHash,
+      company: bootstrap.company
+    },
+    ...users
+  ]);
 }
 
 export async function listLeads(userId?: string) {

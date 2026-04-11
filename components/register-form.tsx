@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation";
 
 export function RegisterForm() {
   const router = useRouter();
-  const [company, setCompany] = useState("Minha Empresa");
-  const [name, setName] = useState("Administrador");
-  const [email, setEmail] = useState("admin@empresa.com");
-  const [password, setPassword] = useState("123456");
+  const [company, setCompany] = useState("");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -44,21 +44,37 @@ export function RegisterForm() {
     <form onSubmit={handleSubmit} style={{ marginTop: 24 }}>
       <label style={{ display: "block", marginTop: 18 }}>
         <span className="mini">Empresa</span>
-        <input className="input" onChange={(event) => setCompany(event.target.value)} value={company} />
+        <input
+          className="input"
+          placeholder="Minha Empresa"
+          onChange={(event) => setCompany(event.target.value)}
+          value={company}
+        />
       </label>
       <label style={{ display: "block", marginTop: 18 }}>
         <span className="mini">Nome do admin</span>
-        <input className="input" onChange={(event) => setName(event.target.value)} value={name} />
+        <input
+          className="input"
+          placeholder="Seu nome"
+          onChange={(event) => setName(event.target.value)}
+          value={name}
+        />
       </label>
       <label style={{ display: "block", marginTop: 18 }}>
         <span className="mini">Email</span>
-        <input className="input" onChange={(event) => setEmail(event.target.value)} value={email} />
+        <input
+          className="input"
+          placeholder="voce@empresa.com"
+          onChange={(event) => setEmail(event.target.value)}
+          value={email}
+        />
       </label>
       <label style={{ display: "block", marginTop: 18 }}>
         <span className="mini">Senha</span>
         <input
           className="input"
           type="password"
+          placeholder="Crie uma senha forte"
           onChange={(event) => setPassword(event.target.value)}
           value={password}
         />

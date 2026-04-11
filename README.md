@@ -99,11 +99,21 @@ Copie `.env.example` para `.env.local` e preencha:
 - `PIX_RECEIVER_KEY`
 - `NEXT_PUBLIC_APP_URL`
 - `WORKER_POLL_MS`
+- `BOOTSTRAP_ADMIN_NAME`
+- `BOOTSTRAP_ADMIN_EMAIL`
+- `BOOTSTRAP_ADMIN_PASSWORD`
+- `BOOTSTRAP_ADMIN_COMPANY`
 
 ## Acesso inicial
 
-- Email: `admin@klio.local`
-- Senha: `123456`
+Nao publique credenciais no codigo. Em producao, defina no ambiente:
+
+- `BOOTSTRAP_ADMIN_NAME`
+- `BOOTSTRAP_ADMIN_EMAIL`
+- `BOOTSTRAP_ADMIN_PASSWORD`
+- `BOOTSTRAP_ADMIN_COMPANY`
+
+Se preferir, use a rota [app/register/page.tsx](C:\Users\DELL\Documents\New project\app\register\page.tsx) para criar a primeira conta pela interface.
 
 ## Observacoes importantes
 

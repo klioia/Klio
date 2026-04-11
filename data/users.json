@@ -1,10 +1,1 @@
-[
-  {
-    "id": "user-1",
-    "tenantId": "tenant-1",
-    "name": "Admin Klio",
-    "email": "admin@klio.local",
-    "passwordHash": "1878a5c346c5522f5748cc41f43dbc3f:03746b788efb522680484a40c9f71d761f844cf240ba5209af8a719c7e1f6889f72f07af33578e95f2d2114cf31b7c34777798d5d5b09a171bef26f8f5a722ff",
-    "company": "Klio"
-  }
-]
+[]
