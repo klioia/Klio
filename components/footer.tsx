@@ -1,4 +1,4 @@
-const footerColumns = [
+﻿const footerColumns = [
   {
     title: "Produto",
     links: [
@@ -52,3 +52,4 @@ export function Footer() {
     </footer>
   );
 }
+

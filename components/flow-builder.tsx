@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useMemo, useState } from "react";
 
@@ -322,3 +322,4 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
     </div>
   );
 }
+

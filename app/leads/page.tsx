@@ -1,4 +1,4 @@
-import { AppShell } from "@/components/app-shell";
+﻿import { AppShell } from "@/components/app-shell";
 import { requireSession } from "@/lib/auth";
 import { listLeads } from "@/lib/repositories";
 
@@ -63,3 +63,4 @@ export default async function LeadsPage() {
     </AppShell>
   );
 }
+

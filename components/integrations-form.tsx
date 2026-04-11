@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useState } from "react";
 
@@ -337,3 +337,4 @@ export function IntegrationsForm({ appUrl, initialState }: IntegrationsFormProps
     </form>
   );
 }
+

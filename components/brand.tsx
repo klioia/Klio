@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import Link from "next/link";
 
 type BrandProps = {
@@ -25,3 +25,4 @@ export function Brand({ compact = false }: BrandProps) {
     </Link>
   );
 }
+

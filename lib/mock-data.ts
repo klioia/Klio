@@ -1,4 +1,4 @@
-export const dashboardStats = [
+﻿export const dashboardStats = [
   { label: "Conversas ativas", value: "1.284", trend: "+18% esta semana" },
   { label: "Automações rodando", value: "42", trend: "8 fluxos multicanal" },
   { label: "Eventos processados", value: "18.420", trend: "92% tratados sem fila manual" },
@@ -118,12 +118,7 @@ export const plans = [
     description: "Estrutura essencial para sair do atendimento manual e ativar os primeiros fluxos.",
     checkoutEnabled: true,
     ctaLabel: "Escolher Start",
-    features: [
-      "1 canal: WhatsApp ou Instagram",
-      "Até 3 automações simples",
-      "Respostas automáticas básicas",
-      "Dashboard simples"
-    ],
+    features: ["1 canal: WhatsApp ou Instagram", "Até 3 automações simples", "Respostas automáticas básicas", "Dashboard simples"],
     limitations: ["Sem campanhas automáticas"]
   },
   {
@@ -138,12 +133,7 @@ export const plans = [
     description: "Melhor ponto para operar em dois canais com mais contexto e mais consistência.",
     checkoutEnabled: true,
     ctaLabel: "Escolher Starter",
-    features: [
-      "WhatsApp + Instagram",
-      "Até 10 automações",
-      "Fluxos personalizados",
-      "Métricas básicas"
-    ],
+    features: ["WhatsApp + Instagram", "Até 10 automações", "Fluxos personalizados", "Métricas básicas"],
     limitations: []
   },
   {
@@ -158,12 +148,7 @@ export const plans = [
     description: "O plano mais forte para equipes que querem escala, campanhas e visão real da operação.",
     checkoutEnabled: true,
     ctaLabel: "Assinar Scale",
-    features: [
-      "Todos os canais principais",
-      "Automações avançadas",
-      "Segmentação de leads",
-      "Analytics e CRM"
-    ],
+    features: ["Todos os canais principais", "Automações avançadas", "Segmentação de leads", "Analytics e CRM"],
     limitations: []
   },
   {
@@ -178,12 +163,8 @@ export const plans = [
     description: "Formato consultivo com infraestrutura dedicada, estratégia personalizada e suporte prioritário.",
     checkoutEnabled: false,
     ctaLabel: "Falar com vendas",
-    features: [
-      "Tudo do Scale",
-      "Automações ilimitadas",
-      "Infraestrutura dedicada",
-      "Gerente de conta"
-    ],
+    features: ["Tudo do Scale", "Automações ilimitadas", "Infraestrutura dedicada", "Gerente de conta"],
     limitations: []
   }
 ];
+

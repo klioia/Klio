@@ -1,4 +1,4 @@
-import { automations, landingProof, plans, resultSignals, timeline } from "@/lib/mock-data";
+﻿import { automations, landingProof, plans, resultSignals, timeline } from "@/lib/mock-data";
 import { LandingReveal } from "@/components/landing-reveal";
 
 export function FeatureSection() {
@@ -186,3 +186,4 @@ export function FinalCtaSection() {
     </section>
   );
 }
+

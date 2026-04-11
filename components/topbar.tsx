@@ -1,4 +1,4 @@
-import { Brand } from "@/components/brand";
+﻿import { Brand } from "@/components/brand";
 
 export function Topbar() {
   return (
@@ -23,3 +23,4 @@ export function Topbar() {
     </header>
   );
 }
+

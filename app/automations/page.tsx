@@ -1,4 +1,4 @@
-import { AppShell } from "@/components/app-shell";
+﻿import { AppShell } from "@/components/app-shell";
 import { describeFlow, humanizeAction, humanizeTrigger } from "@/lib/automation-utils";
 import { requireSession } from "@/lib/auth";
 import { AutomationRecord, listAutomations } from "@/lib/repositories";
@@ -58,3 +58,4 @@ export default async function AutomationsPage() {
     </AppShell>
   );
 }
+

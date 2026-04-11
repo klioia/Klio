@@ -1,4 +1,4 @@
-import { AppShell } from "@/components/app-shell";
+﻿import { AppShell } from "@/components/app-shell";
 import { IntegrationsForm } from "@/components/integrations-form";
 import { requireSession } from "@/lib/auth";
 import { getIntegrations } from "@/lib/repositories";
@@ -24,3 +24,4 @@ export default async function IntegrationsPage() {
     </AppShell>
   );
 }
+
