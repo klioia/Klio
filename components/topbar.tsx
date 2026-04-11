@@ -7,9 +7,9 @@ export function Topbar() {
         <Brand />
         <div className="topbar-actions">
           <nav className="nav-row mini topbar-nav">
-            <a href="/">Inicio</a>
+            <a href="/">Início</a>
             <a href="#planos">Planos</a>
-            <a href="#impacto">Impacto</a>
+            <a href="#recursos">Recursos</a>
             <a href="/login">Entrar</a>
           </nav>
           <a className="btn btn-secondary topbar-cta" href="/login">

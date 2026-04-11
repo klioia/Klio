@@ -1,11 +1,5 @@
 import { Hero } from "@/components/hero";
-import {
-  DemoSection,
-  FinalCtaSection,
-  PricingSection,
-  ProblemSolutionSection,
-  SocialProofSection
-} from "@/components/sections";
+import { AutomationSection, FeatureSection, FinalCtaSection, PricingSection, ResultsSection } from "@/components/sections";
 import { Topbar } from "@/components/topbar";
 
 export default function HomePage() {
@@ -13,10 +7,10 @@ export default function HomePage() {
     <>
       <Topbar />
       <Hero />
-      <ProblemSolutionSection />
-      <DemoSection />
+      <FeatureSection />
+      <AutomationSection />
       <PricingSection />
-      <SocialProofSection />
+      <ResultsSection />
       <FinalCtaSection />
     </>
   );

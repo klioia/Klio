@@ -20,7 +20,7 @@ export function Brand({ compact = false }: BrandProps) {
       </span>
       <span>
         <span className="logo">Klio</span>
-        {!compact ? <span className="brand-subtitle">conversational automation layer</span> : null}
+        {!compact ? <span className="brand-subtitle">automação conversacional</span> : null}
       </span>
     </Link>
   );
