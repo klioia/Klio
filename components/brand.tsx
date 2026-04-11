@@ -12,8 +12,8 @@ export function Brand({ compact = false }: BrandProps) {
         <Image
           src="/logo.png"
           alt="Klio"
-          width={compact ? 36 : 44}
-          height={compact ? 36 : 44}
+          width={compact ? 36 : 56}
+          height={compact ? 36 : 56}
           priority
           style={{ borderRadius: 12 }}
         />

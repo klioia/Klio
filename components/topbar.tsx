@@ -1,16 +1,28 @@
-﻿import { Brand } from "@/components/brand";
+"use client";
+
+import { useEffect, useState } from "react";
+import { Brand } from "@/components/brand";
 
 export function Topbar() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 8);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <header className="topbar">
+    <header className={`topbar${scrolled ? " topbar-scrolled" : ""}`}>
       <div className="shell topbar-inner">
         <Brand />
         <div className="topbar-actions">
           <nav className="nav-row mini topbar-nav">
             <a href="#recursos">Recursos</a>
-            <a href="#automacoes">Demo</a>
+            <a href="#flow-engine">Flow Engine</a>
+            <a href="#automacoes">Como funciona</a>
             <a href="#planos">Planos</a>
-            <a href="/login">Entrar</a>
           </nav>
           <a className="btn btn-secondary topbar-cta" href="/login">
             Entrar
@@ -23,4 +35,3 @@ export function Topbar() {
     </header>
   );
 }
-

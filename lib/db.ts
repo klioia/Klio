@@ -10,7 +10,7 @@ export function hasDatabaseUrl() {
 
 export function getPrismaClient() {
   if (!hasDatabaseUrl()) {
-    throw new Error("DATABASE_URL nao configurada.");
+    throw new Error("DATABASE_URL não configurada.");
   }
 
   if (!global.prismaGlobal) {

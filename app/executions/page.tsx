@@ -9,7 +9,7 @@ export default async function ExecutionsPage() {
   return (
     <AppShell
       userName={session.name}
-      title="Historico de execucoes."
+      title="Histórico de execuções."
       description="Veja cada disparo, para quem o fluxo rodou e qual foi o resultado da execucao."
     >
       <div className="flow-list">

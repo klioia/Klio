@@ -19,10 +19,13 @@ export function Hero() {
             transition={{ delay: 0.1, duration: 0.5 }}
           >
             <span className="hero-badge-dot" />
-            Novo — Automação com IA integrada →
+            Novo: IA conversacional integrada →
           </motion.span>
 
-          <h1 className="hero-display">Automatize conversas. Escale sem contratar.</h1>
+          <h1 className="hero-display">
+            Automatize <span className="hero-gradient">conversas</span>. Escale{" "}
+            <span className="hero-gradient">sem contratar</span>.
+          </h1>
           <p className="hero-subtitle">
             Centralize WhatsApp, Instagram, Messenger e Telegram em uma operação mais rápida, elegante e previsível.
           </p>
@@ -40,6 +43,19 @@ export function Hero() {
             <span className="mini">IA aplicada ao atendimento</span>
             <span className="mini">Fluxos multicanal</span>
             <span className="mini">Escala sem inflar equipe</span>
+          </div>
+
+          <div className="hero-social-proof">
+            <div className="hero-avatars">
+              <span className="avatar">AC</span>
+              <span className="avatar">LM</span>
+              <span className="avatar">RS</span>
+              <span className="avatar">KB</span>
+            </div>
+            <div>
+              <strong>+500 empresas já automatizam com a Klio</strong>
+              <div className="hero-stars">★★★★★</div>
+            </div>
           </div>
         </motion.div>
 

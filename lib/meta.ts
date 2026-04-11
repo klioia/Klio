@@ -22,7 +22,7 @@ type ResolvedMetaConfig =
 
 function requireConfigured(value: string | undefined, name: string) {
   if (!value) {
-    throw new Error(`Variavel ${name} nao configurada.`);
+    throw new Error(`Variável ${name} não configurada.`);
   }
 
   return value;

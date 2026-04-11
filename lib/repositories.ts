@@ -483,7 +483,7 @@ export async function updateIntegrations(input: LocalIntegrations, tenantId?: st
         : await prisma.tenant.findFirst({ orderBy: { createdAt: "asc" } });
 
     if (!tenant) {
-      throw new Error("Tenant nao encontrado para salvar integracoes.");
+      throw new Error("Tenant não encontrado para salvar integrações.");
     }
 
     const entries = [

@@ -1,4 +1,6 @@
-﻿const footerColumns = [
+import { Brand } from "@/components/brand";
+
+const footerColumns = [
   {
     title: "Produto",
     links: [
@@ -10,19 +12,25 @@
   {
     title: "Empresa",
     links: [
-      { label: "Entrar", href: "/login" },
-      { label: "Criar conta", href: "/register" },
-      { label: "Painel", href: "/dashboard" }
+      { label: "Sobre", href: "#" },
+      { label: "Blog", href: "#" },
+      { label: "Carreiras", href: "#" }
     ]
   },
   {
-    title: "Canais",
+    title: "Suporte",
     links: [
-      { label: "WhatsApp", href: "#recursos" },
-      { label: "Instagram", href: "#recursos" },
-      { label: "Messenger e Telegram", href: "#recursos" }
+      { label: "Docs", href: "#" },
+      { label: "Status", href: "#" },
+      { label: "Contato", href: "#" }
     ]
   }
+];
+
+const socialLinks = [
+  { label: "Instagram", href: "https://instagram.com" },
+  { label: "LinkedIn", href: "https://linkedin.com" },
+  { label: "X", href: "https://x.com" }
 ];
 
 export function Footer() {
@@ -30,8 +38,17 @@ export function Footer() {
     <footer className="footer">
       <div className="shell footer-inner">
         <div className="footer-brand">
-          <strong>Klio</strong>
-          <p className="mini">Automação conversacional para equipes que querem responder mais rápido e vender com mais consistência.</p>
+          <Brand compact />
+          <p className="mini">
+            Automação conversacional para equipes que querem responder mais rápido e vender com mais consistência.
+          </p>
+          <div className="footer-social">
+            {socialLinks.map((link) => (
+              <a key={link.label} href={link.href} target="_blank" rel="noreferrer">
+                {link.label}
+              </a>
+            ))}
+          </div>
         </div>
 
         <div className="footer-grid">
@@ -49,7 +66,13 @@ export function Footer() {
           ))}
         </div>
       </div>
+      <div className="shell footer-bottom">
+        <span className="mini">© 2026 Klio. Todos os direitos reservados.</span>
+        <div className="footer-legal">
+          <a href="#">Termos</a>
+          <a href="#">Privacidade</a>
+        </div>
+      </div>
     </footer>
   );
 }
-

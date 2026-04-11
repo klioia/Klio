@@ -14,10 +14,10 @@ const links = [
   { href: "/dashboard", label: "Painel" },
   { href: "/leads", label: "Leads" },
   { href: "/automations", label: "Fluxos" },
-  { href: "/executions", label: "Execucoes" },
+  { href: "/executions", label: "Execuções" },
   { href: "/scheduled", label: "Agendados" },
   { href: "/worker", label: "Worker" },
-  { href: "/integrations", label: "Integracoes" }
+  { href: "/integrations", label: "Integrações" }
 ];
 
 export function AppShell({ userName, title, description, children }: AppShellProps) {
@@ -42,13 +42,13 @@ export function AppShell({ userName, title, description, children }: AppShellPro
             {links.map((link) => (
               <Link className="workspace-link" href={link.href} key={link.href}>
                 <strong>{link.label}</strong>
-                <span className="mini">abrir area</span>
+                <span className="mini">abrir área</span>
               </Link>
             ))}
           </div>
         </aside>
         <section>
-          <span className="eyebrow">Operacao</span>
+          <span className="eyebrow">Operação</span>
           <h1 className="section-title">{title}</h1>
           <p className="muted">{description}</p>
           <div style={{ marginTop: 24 }}>{children}</div>

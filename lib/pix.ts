@@ -20,7 +20,7 @@ async function createMercadoPagoPixCharge(payload: CheckoutPayload): Promise<Pix
   const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
 
   if (!accessToken) {
-    throw new Error("MERCADO_PAGO_ACCESS_TOKEN nao configurado.");
+    throw new Error("MERCADO_PAGO_ACCESS_TOKEN não configurado.");
   }
 
   const response = await fetch("https://api.mercadopago.com/v1/payments", {
@@ -63,7 +63,7 @@ async function createAsaasPixCharge(payload: CheckoutPayload): Promise<PixCharge
   const customerId = payload.customerExternalId || process.env.ASAAS_DEFAULT_CUSTOMER_ID;
 
   if (!apiKey) {
-    throw new Error("ASAAS_API_KEY nao configurada.");
+    throw new Error("ASAAS_API_KEY não configurada.");
   }
 
   if (!customerId) {

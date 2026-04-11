@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   const automation = await getAutomationById(body.automationId, session?.id);
 
   if (!automation) {
-    return NextResponse.json({ ok: false, error: "Fluxo nao encontrado." }, { status: 404 });
+    return NextResponse.json({ ok: false, error: "Fluxo não encontrado." }, { status: 404 });
   }
 
   const trigger = decodeTrigger(automation.trigger);

@@ -72,7 +72,7 @@ export function CheckoutForm({ plan }: CheckoutFormProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Nao foi possivel gerar seu Pix agora.");
+        throw new Error(data.error || "Não foi possível gerar seu Pix agora.");
       }
 
       setCharge(data.charge);
@@ -100,7 +100,7 @@ export function CheckoutForm({ plan }: CheckoutFormProps) {
           Enterprise entra com diagnostico e proposta sob medida.
         </h2>
         <p className="muted">
-          Para operacoes maiores, a Klio fecha melhor quando a gente entende volume, equipe, CRM e regras da operacao.
+          Para operações maiores, a Klio fecha melhor quando a gente entende volume, equipe, CRM e regras da operação.
         </p>
         <div className="flow-list" style={{ marginTop: 20 }}>
           <div className="price-row">
@@ -170,7 +170,7 @@ export function CheckoutForm({ plan }: CheckoutFormProps) {
         <section className="card panel pix-box">
           <strong>Seu Pix</strong>
           <p className="muted">
-            Gere o pagamento e copie o codigo Pix. Quando voce integrar um provider real, esse bloco ja fica pronto para producao.
+            Gere o pagamento e copie o código Pix. Quando você integrar um provider real, esse bloco já fica pronto para produção.
           </p>
           <div className="qr" style={{ marginTop: 18 }}>
             {charge?.copyPasteCode ? (
@@ -183,12 +183,12 @@ export function CheckoutForm({ plan }: CheckoutFormProps) {
             )}
           </div>
           <label style={{ display: "block", marginTop: 18 }}>
-            <span className="mini">Codigo Pix copia e cola</span>
-            <textarea className="textarea" readOnly value={charge?.copyPasteCode || ""} placeholder="Seu codigo Pix vai aparecer aqui." />
+            <span className="mini">Código Pix copia e cola</span>
+            <textarea className="textarea" readOnly value={charge?.copyPasteCode || ""} placeholder="Seu código Pix vai aparecer aqui." />
           </label>
           <div className="cta-row" style={{ marginTop: 18 }}>
             <button className="btn btn-primary" type="button" disabled={!charge?.copyPasteCode} onClick={handleCopyPixCode}>
-              {copied ? "Codigo copiado" : "Copiar codigo"}
+              {copied ? "Código copiado" : "Copiar código"}
             </button>
             <a className="btn btn-secondary" href="/login">
               Ja sou cliente
