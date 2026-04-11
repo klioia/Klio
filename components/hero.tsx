@@ -1,61 +1,71 @@
 export function Hero() {
   return (
     <section className="section">
-      <div className="shell hero-grid">
+      <div className="shell hero-grid hero-grid-conversion">
         <div>
-          <span className="eyebrow">Chatbot, fluxos e webhooks em um unico motor</span>
-          <h1 className="hero-title">Bots e automacoes para WhatsApp e Instagram.</h1>
-          <p className="muted">
-            Receba eventos, responda com bot e entregue para o humano certo quando fizer sentido.
+          <span className="eyebrow">Automacao de atendimento para vender mais</span>
+          <h1 className="hero-title hero-title-conversion">
+            Responda mais rapido, aproveite mais leads e venda sem depender de uma equipe grande.
+          </h1>
+          <p className="muted hero-copy">
+            A Klio automatiza conversas no WhatsApp, Instagram, Messenger e Telegram para seu negocio atender melhor,
+            organizar contatos e transformar mensagens em oportunidades reais.
           </p>
           <div className="cta-row" style={{ marginTop: 24 }}>
-            <a className="btn btn-primary" href="#planos">
-              Ver planos
-            </a>
             <a className="btn btn-primary" href="/register">
-              Comecar agora
+              Automatizar meu atendimento
             </a>
-            <a className="btn btn-secondary" href="/dashboard">
-              Ver painel
+            <a className="btn btn-secondary" href="#demo">
+              Ver a Klio em acao
             </a>
           </div>
           <div className="hero-proof-row" style={{ marginTop: 18 }}>
-            <span className="mini">Planos a partir de R$ 259,90/mes</span>
-            <span className="mini">WhatsApp + Instagram</span>
-            <span className="mini">Webhook + bot + handoff</span>
+            <span className="mini">Comece hoje sem equipe grande</span>
+            <span className="mini">Respostas mais rapidas</span>
+            <span className="mini">Mais vendas com menos operacao manual</span>
           </div>
         </div>
         <div className="hero-clean">
-          <div className="card panel hero-surface hero-workspace">
+          <div className="card panel hero-surface hero-workspace hero-demo-board">
             <div className="hero-workspace-head">
               <div>
-                <strong>Klio Flow Engine</strong>
-                <div className="mini">builder conversacional com eventos e handoff</div>
+                <strong>Painel da Klio</strong>
+                <div className="mini">atendimento, qualificacao e repasse no mesmo fluxo</div>
               </div>
-              <span className="pricing-badge pricing-badge-featured">online</span>
+              <span className="pricing-badge pricing-badge-featured">ao vivo</span>
             </div>
-            <div className="hero-node-grid">
+            <div className="demo-thread">
+              <div className="demo-message demo-message-in">
+                <span className="mini">Cliente</span>
+                <strong>Oi, quero saber valores para minha clinica.</strong>
+              </div>
+              <div className="demo-message demo-message-out">
+                <span className="mini">Klio</span>
+                <strong>Perfeito. Posso te ajudar agora e entender o que voce precisa.</strong>
+              </div>
+            </div>
+            <div className="hero-node-grid hero-node-grid-conversion">
               <article className="hero-node hero-node-entry">
-                <span className="mini">Entrada</span>
-                <strong>Webhook Instagram</strong>
-                <p className="mini">Comentario identificado em tempo real.</p>
+                <span className="mini">Resposta imediata</span>
+                <strong>Atende na hora</strong>
+                <p className="mini">Seu lead nao fica esperando.</p>
               </article>
               <article className="hero-node">
-                <span className="mini">Bot</span>
-                <strong>Resposta automatica</strong>
-                <p className="mini">Qualifica e conduz a conversa.</p>
+                <span className="mini">Qualificacao</span>
+                <strong>Entende o interesse</strong>
+                <p className="mini">Organiza a conversa sem confusao.</p>
               </article>
               <article className="hero-node hero-node-highlight hero-node-wide">
-                <span className="mini">Handoff</span>
-                <strong>Time comercial</strong>
-                <p className="mini">Recebe contexto antes de assumir.</p>
+                <span className="mini">Repasse inteligente</span>
+                <strong>Entrega para o humano certo no momento certo</strong>
+                <p className="mini">Seu time entra com contexto pronto para fechar.</p>
               </article>
             </div>
           </div>
           <div className="hero-note hero-note-premium">
-            <strong>Pronta para operar</strong>
+            <strong>Mais clareza na operacao</strong>
             <p className="muted" style={{ marginBottom: 0 }}>
-              Configure canais, ative fluxos e coloque sua automacao no ar sem uma interface poluida.
+              Todos os canais em uma unica plataforma, com atendimento mais rapido e menos trabalho manual.
             </p>
           </div>
         </div>

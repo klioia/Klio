@@ -1,5 +1,11 @@
 import { Hero } from "@/components/hero";
-import { FinalCtaSection, PricingSection, ResultsSection } from "@/components/sections";
+import {
+  DemoSection,
+  FinalCtaSection,
+  PricingSection,
+  ProblemSolutionSection,
+  SocialProofSection
+} from "@/components/sections";
 import { Topbar } from "@/components/topbar";
 
 export default function HomePage() {
@@ -7,8 +13,10 @@ export default function HomePage() {
     <>
       <Topbar />
       <Hero />
+      <ProblemSolutionSection />
+      <DemoSection />
       <PricingSection />
-      <ResultsSection />
+      <SocialProofSection />
       <FinalCtaSection />
     </>
   );

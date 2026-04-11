@@ -79,6 +79,14 @@ button, input, select, textarea { font: inherit; }
 .hero-title, .section-title { margin: 16px 0; line-height: 0.96; letter-spacing: -0.04em; }
 .hero-title { font-size: clamp(40px, 7vw, 76px); max-width: 10ch; }
 .section-title { font-size: clamp(30px, 5vw, 48px); max-width: 15ch; }
+.hero-title-conversion {
+  max-width: 12ch;
+  font-size: clamp(44px, 6.4vw, 78px);
+}
+.hero-copy {
+  max-width: 62ch;
+  font-size: 18px;
+}
 .muted { color: var(--muted); line-height: 1.72; }
 .cta-row, .stat-row, .nav-row, .chip-row { display: flex; flex-wrap: wrap; gap: 12px; }
 .btn {
@@ -217,6 +225,9 @@ button, input, select, textarea { font: inherit; }
   gap: 14px;
   align-content: start;
 }
+.hero-grid-conversion {
+  align-items: center;
+}
 .hero-proof-row {
   display: flex;
   flex-wrap: wrap;
@@ -236,6 +247,11 @@ button, input, select, textarea { font: inherit; }
   display: grid;
   gap: 18px;
 }
+.hero-demo-board {
+  background:
+    radial-gradient(circle at top right, rgba(143, 131, 255, 0.18), transparent 34%),
+    linear-gradient(180deg, rgba(17, 23, 44, 0.98), rgba(10, 14, 26, 0.98));
+}
 .hero-surface::before {
   content: "";
   position: absolute;
@@ -253,6 +269,28 @@ button, input, select, textarea { font: inherit; }
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+}
+.hero-node-grid-conversion {
+  margin-top: 8px;
+}
+.demo-thread {
+  display: grid;
+  gap: 12px;
+}
+.demo-message {
+  max-width: 92%;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(160, 153, 255, 0.14);
+}
+.demo-message-in {
+  background: rgba(255, 255, 255, 0.03);
+  justify-self: start;
+}
+.demo-message-out {
+  background: linear-gradient(135deg, rgba(107, 92, 255, 0.16), rgba(196, 187, 255, 0.08));
+  border-color: rgba(196, 187, 255, 0.22);
+  justify-self: end;
 }
 .hero-node {
   position: relative;
@@ -328,6 +366,11 @@ button, input, select, textarea { font: inherit; }
   justify-content: space-between;
   gap: 16px;
 }
+.pricing-badge-stack {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
 .pricing-card-name {
   font-size: 28px;
   font-weight: 800;
@@ -338,6 +381,9 @@ button, input, select, textarea { font: inherit; }
 }
 .pricing-note {
   margin-top: 16px;
+  font-size: 13px;
+  color: var(--brand-soft);
+  line-height: 1.6;
 }
 .pricing-card-headline {
   margin-top: 16px;
@@ -472,6 +518,67 @@ button, input, select, textarea { font: inherit; }
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.035), rgba(143, 131, 255, 0.05)),
     rgba(18, 24, 46, 0.78);
+}
+.solution-item {
+  background:
+    linear-gradient(135deg, rgba(107, 92, 255, 0.12), rgba(255, 255, 255, 0.02)),
+    rgba(18, 24, 46, 0.78);
+}
+.demo-grid {
+  align-items: start;
+}
+.demo-step-card {
+  min-height: 188px;
+}
+.demo-step-title {
+  margin: 18px 0 10px;
+  font-size: 26px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.demo-visual-card {
+  background:
+    radial-gradient(circle at top right, rgba(143, 131, 255, 0.16), transparent 32%),
+    linear-gradient(180deg, rgba(16, 21, 41, 0.95), rgba(12, 17, 34, 0.98));
+}
+.demo-visual-track {
+  display: grid;
+  gap: 14px;
+}
+.demo-visual-bubble {
+  padding: 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(160, 153, 255, 0.16);
+  background: rgba(255, 255, 255, 0.03);
+}
+.demo-visual-bubble-in {
+  background: rgba(255, 255, 255, 0.024);
+}
+.demo-visual-bubble-out {
+  background: linear-gradient(135deg, rgba(107, 92, 255, 0.14), rgba(196, 187, 255, 0.06));
+}
+.demo-visual-bubble-highlight {
+  border-color: rgba(196, 187, 255, 0.28);
+  background: linear-gradient(135deg, rgba(196, 187, 255, 0.18), rgba(107, 92, 255, 0.12));
+}
+.demo-visual-arrow {
+  color: var(--brand-soft);
+  font-size: 20px;
+  padding-left: 8px;
+}
+.testimonial-grid {
+  align-items: stretch;
+}
+.testimonial-card {
+  display: grid;
+  gap: 18px;
+  min-height: 220px;
+}
+.testimonial-quote {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.75;
+  color: #eef0ff;
 }
 .result-value {
   margin: 12px 0 8px;

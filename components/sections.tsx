@@ -1,89 +1,124 @@
-import { automations, landingProof, plans, resultSignals, timeline } from "@/lib/mock-data";
+import {
+  closingBenefits,
+  demoSteps,
+  painPoints,
+  plans,
+  proofMetrics,
+  socialProof,
+  solutionPoints
+} from "@/lib/mock-data";
 
-export function FeatureSection() {
+export function ProblemSolutionSection() {
   return (
-    <section className="section" id="recursos">
-      <div className="shell">
-        <span className="eyebrow">Recursos principais</span>
-        <h2 className="section-title">Tudo que voce precisa para rodar bots e fluxos com clareza.</h2>
-        <div className="grid-3" style={{ marginTop: 24 }}>
-          <article className="card panel feature-item" style={{ display: "block" }}>
-            <strong>Bot com memoria operacional</strong>
-            <p className="muted">O bot responde com contexto de canal, lead e etapa do fluxo sem perder a continuidade da conversa.</p>
-          </article>
-          <article className="card panel feature-item" style={{ display: "block" }}>
-            <strong>Automacoes por evento</strong>
-            <p className="muted">Dispare fluxos por comentario, palavra-chave, nova mensagem, reengajamento ou handoff humano.</p>
-          </article>
-          <article className="card panel feature-item" style={{ display: "block" }}>
-            <strong>Webhook e monitoramento</strong>
-            <p className="muted">Receba eventos da Meta, acompanhe execucoes e controle a fila automatica com visibilidade total.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function ResultsSection() {
-  return (
-    <section className="section" id="impacto">
-      <div className="shell">
-        <span className="eyebrow">Impacto</span>
-        <h2 className="section-title">Menos tempo perdido. Mais resposta. Mais contexto.</h2>
-        <div className="grid-3" style={{ marginTop: 24 }}>
-          {resultSignals.map((signal) => (
-            <article className="card panel result-card" key={signal.label}>
-              <span className="mini">{signal.label}</span>
-              <div className="result-value">{signal.value}</div>
-              <p className="muted" style={{ marginBottom: 0 }}>{signal.detail}</p>
-            </article>
-          ))}
-        </div>
-        <div className="chip-row" style={{ marginTop: 18 }}>
-          {landingProof.map((item) => (
-            <span className="tag tag-warning" key={item}>{item}</span>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-export function AutomationSection() {
-  return (
-    <section className="section" id="automacoes">
+    <section className="section">
       <div className="shell grid-2">
         <div>
-          <span className="eyebrow">Automacoes</span>
-          <h2 className="section-title">Fluxos simples para capturar, responder e entregar no momento certo.</h2>
-          <div className="timeline" style={{ marginTop: 24 }}>
-            {timeline.map((item, index) => (
-              <div className="timeline-item" key={item}>
-                <strong>{String(index + 1).padStart(2, "0")}</strong>
-                <span className="muted">{item}</span>
-              </div>
+          <span className="eyebrow">O problema</span>
+          <h2 className="section-title">Quando o atendimento demora, a venda esfria.</h2>
+          <div className="flow-list" style={{ marginTop: 24 }}>
+            {painPoints.map((item) => (
+              <article className="card panel feature-item" key={item.title}>
+                <strong>{item.title}</strong>
+                <p className="muted" style={{ marginBottom: 0 }}>{item.description}</p>
+              </article>
             ))}
           </div>
         </div>
-        <div className="flow-list">
-          {automations.map((automation) => (
-            <article className="card panel" key={automation.id}>
-              <div className="flow-item">
-                <div>
-                  <strong>{automation.name}</strong>
-                  <div className="mini">{automation.trigger}</div>
+        <div>
+          <span className="eyebrow">A solucao</span>
+          <h2 className="section-title">A Klio responde, organiza e acelera cada conversa.</h2>
+          <div className="flow-list" style={{ marginTop: 24 }}>
+            {solutionPoints.map((item) => (
+              <article className="card panel feature-item solution-item" key={item.title}>
+                <strong>{item.title}</strong>
+                <p className="muted" style={{ marginBottom: 0 }}>{item.description}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function DemoSection() {
+  return (
+    <section className="section" id="demo">
+      <div className="shell">
+        <span className="eyebrow">Como funciona</span>
+        <h2 className="section-title">Sua automacao rodando em poucos passos.</h2>
+        <p className="muted pricing-intro">
+          A Klio foi feita para simplificar o atendimento: responder na hora, qualificar melhor e levar cada lead
+          para o proximo passo sem deixar a operacao pesada.
+        </p>
+        <div className="grid-2 demo-grid" style={{ marginTop: 24 }}>
+          <div className="flow-list">
+            {demoSteps.map((step) => (
+              <article className="card panel demo-step-card" key={step.step}>
+                <div className="flow-item">
+                  <strong>{step.step}</strong>
+                  <span className="pricing-badge">{step.badge}</span>
                 </div>
-                <span className={automation.status === "Ativa" ? "tag tag-success" : "tag tag-warning"}>
-                  {automation.status}
-                </span>
+                <h3 className="demo-step-title">{step.title}</h3>
+                <p className="muted" style={{ marginBottom: 0 }}>{step.description}</p>
+              </article>
+            ))}
+          </div>
+          <div className="card panel demo-visual-card">
+            <div className="demo-visual-track">
+              <div className="demo-visual-bubble demo-visual-bubble-in">
+                <span className="mini">Mensagem recebida</span>
+                <strong>Quero saber como funciona.</strong>
               </div>
-              <div className="chip-row" style={{ marginTop: 14 }}>
-                {automation.actions.map((action) => (
-                  <span className="tag tag-warning" key={action}>
-                    {action}
-                  </span>
-                ))}
+              <div className="demo-visual-arrow">{`->`}</div>
+              <div className="demo-visual-bubble demo-visual-bubble-out">
+                <span className="mini">Resposta da Klio</span>
+                <strong>Consigo te orientar agora e entender sua necessidade.</strong>
+              </div>
+              <div className="demo-visual-arrow">{`->`}</div>
+              <div className="demo-visual-bubble">
+                <span className="mini">Lead organizado</span>
+                <strong>Contato qualificado e pronto para avancar.</strong>
+              </div>
+              <div className="demo-visual-arrow">{`->`}</div>
+              <div className="demo-visual-bubble demo-visual-bubble-highlight">
+                <span className="mini">Equipe assume</span>
+                <strong>Seu time entra com contexto e foco em fechar.</strong>
+              </div>
+            </div>
+            <div className="cta-row" style={{ marginTop: 24 }}>
+              <a className="btn btn-primary" href="/register">
+                Testar automacao
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function SocialProofSection() {
+  return (
+    <section className="section" id="impacto">
+      <div className="shell">
+        <span className="eyebrow">Prova social</span>
+        <h2 className="section-title">Resultados que fazem a operacao crescer sem travar.</h2>
+        <div className="grid-3" style={{ marginTop: 24 }}>
+          {proofMetrics.map((metric) => (
+            <article className="card panel result-card" key={metric.label}>
+              <span className="mini">{metric.label}</span>
+              <div className="result-value">{metric.value}</div>
+              <p className="muted" style={{ marginBottom: 0 }}>{metric.detail}</p>
+            </article>
+          ))}
+        </div>
+        <div className="grid-3 testimonial-grid" style={{ marginTop: 24 }}>
+          {socialProof.map((item) => (
+            <article className="card panel testimonial-card" key={item.name}>
+              <p className="testimonial-quote">“{item.quote}”</p>
+              <div className="mini">
+                <strong>{item.name}</strong> - {item.role}
               </div>
             </article>
           ))}
@@ -98,8 +133,11 @@ export function PricingSection() {
     <section className="section" id="planos">
       <div className="shell">
         <span className="eyebrow">Planos Klio</span>
-        <h2 className="section-title">Precos claros logo no inicio para voce decidir sem perder tempo.</h2>
-        <p className="muted pricing-intro">Escolha pelo nivel da sua operacao. O `Scale` continua sendo o melhor ponto de equilibrio.</p>
+        <h2 className="section-title">Escolha hoje o plano certo para parar de perder atendimento.</h2>
+        <p className="muted pricing-intro">
+          Se sua operacao continua manual, sua equipe trabalha mais e vende menos. A Klio ajuda voce a escalar sem
+          transformar o atendimento em caos.
+        </p>
         <div className="pricing-grid" style={{ marginTop: 24 }}>
           {plans.map((plan) => (
             <article className={`card panel pricing-card${plan.highlight ? " pricing-card-featured" : ""}`} key={plan.id}>
@@ -108,31 +146,28 @@ export function PricingSection() {
                   <div className="pricing-card-name">{plan.name}</div>
                   <div className="mini">{plan.audience}</div>
                 </div>
-                <span className={`pricing-badge${plan.highlight ? " pricing-badge-featured" : ""}`}>{plan.badge}</span>
+                <div className="pricing-badge-stack">
+                  <span className={`pricing-badge${plan.highlight ? " pricing-badge-featured" : ""}`}>{plan.badge}</span>
+                  {plan.supportingBadge ? <span className="pricing-badge">{plan.supportingBadge}</span> : null}
+                </div>
               </div>
               <div className="pricing-card-headline">{plan.description}</div>
               <div className="price" style={{ fontSize: 40, marginTop: 18 }}>{plan.price}</div>
               <p className="mini">{plan.billing}</p>
               <div className="divider" />
               <div className="feature-list">
-                {plan.features.slice(0, 3).map((feature) => (
+                {plan.features.slice(0, 4).map((feature) => (
                   <div className="pricing-feature" key={feature}>
                     <span className="pricing-feature-dot" />
                     <strong>{feature}</strong>
                   </div>
                 ))}
               </div>
-              {plan.limitations.length ? <p className="mini pricing-note">{plan.limitations[0]}</p> : null}
+              {plan.urgencyLine ? <p className="pricing-note">{plan.urgencyLine}</p> : null}
               <div className="cta-row" style={{ marginTop: 18 }}>
-                {plan.checkoutEnabled ? (
-                  <a className={plan.highlight ? "btn btn-primary" : "btn btn-secondary"} href="/register">
-                    {plan.highlight ? "Entrar no Scale" : `Escolher ${plan.name}`}
-                  </a>
-                ) : (
-                  <a className="btn btn-secondary" href="/register">
-                    {plan.ctaLabel}
-                  </a>
-                )}
+                <a className={plan.highlight ? "btn btn-primary" : "btn btn-secondary"} href="/register">
+                  {plan.ctaLabel}
+                </a>
               </div>
             </article>
           ))}
@@ -147,18 +182,23 @@ export function FinalCtaSection() {
     <section className="section">
       <div className="shell">
         <section className="card panel final-cta">
-          <span className="eyebrow">Pronto para operar</span>
-          <h2 className="section-title">Coloque sua automacao conversacional no ar com a Klio.</h2>
+          <span className="eyebrow">Fechamento</span>
+          <h2 className="section-title">Seu atendimento pode continuar pesado ou comecar a vender no automatico.</h2>
           <p className="muted final-cta-copy">
-            Entre com seus canais, conecte webhooks, ligue o bot e transforme atendimento em um sistema mais rapido,
-            previsivel e escalavel.
+            A Klio foi criada para responder mais rapido, aproveitar mais leads e ajudar seu negocio a crescer com
+            menos operacao manual. Quanto antes voce automatiza, antes sua equipe ganha tempo para vender.
           </p>
+          <div className="chip-row" style={{ marginTop: 18 }}>
+            {closingBenefits.map((item) => (
+              <span className="tag tag-warning" key={item}>{item}</span>
+            ))}
+          </div>
           <div className="cta-row" style={{ marginTop: 24 }}>
             <a className="btn btn-primary" href="/register">
-              Criar minha operacao
+              Comecar agora sem equipe
             </a>
-            <a className="btn btn-secondary" href="/login">
-              Entrar no painel
+            <a className="btn btn-secondary" href="#demo">
+              Ver a plataforma em acao
             </a>
           </div>
         </section>
