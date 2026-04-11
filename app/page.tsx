@@ -1,4 +1,5 @@
 import Grainient from "@/components/Grainient";
+import { Footer } from "@/components/footer";
 import { Hero } from "@/components/hero";
 import { AutomationSection, FeatureSection, FinalCtaSection, PricingSection, ResultsSection } from "@/components/sections";
 import { Topbar } from "@/components/topbar";
@@ -44,6 +45,7 @@ export default function HomePage() {
           <ResultsSection />
           <FinalCtaSection />
         </main>
+        <Footer />
       </div>
     </div>
   );

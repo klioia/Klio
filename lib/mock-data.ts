@@ -1,8 +1,8 @@
 export const dashboardStats = [
   { label: "Conversas ativas", value: "1.284", trend: "+18% esta semana" },
   { label: "Automações rodando", value: "42", trend: "8 fluxos multicanal" },
-  { label: "Eventos por webhook", value: "18.420", trend: "92% processados" },
-  { label: "Tempo poupado", value: "137h", trend: "operação de atendimento" }
+  { label: "Eventos processados", value: "18.420", trend: "92% tratados sem fila manual" },
+  { label: "Tempo poupado", value: "137h", trend: "operação mais leve para o time" }
 ];
 
 export const automations = [
@@ -10,21 +10,21 @@ export const automations = [
     id: "auto-01",
     name: "Comentário para DM automática",
     trigger: "Comentário com palavra-chave na postagem",
-    actions: ["Ler evento de entrada", "Responder na DM", "Atualizar etapa do lead"],
+    actions: ["Abre conversa na hora", "Responde com contexto", "Leva para o próximo passo"],
     status: "Ativa"
   },
   {
     id: "auto-02",
-    name: "Chatbot de qualificação inicial",
-    trigger: "Nova mensagem com intenção comercial",
-    actions: ["Interpretar intenção", "Responder automaticamente", "Acionar equipe"],
+    name: "Qualificação comercial inicial",
+    trigger: "Nova mensagem com intenção de compra",
+    actions: ["Faz as primeiras perguntas", "Organiza o lead", "Entrega para a equipe certa"],
     status: "Ativa"
   },
   {
     id: "auto-03",
     name: "Reengajamento automático",
-    trigger: "Lead sem resposta há 48h",
-    actions: ["Reativar conversa", "Aplicar novo gatilho", "Mover etapa do lead"],
+    trigger: "Contato sem resposta há 48h",
+    actions: ["Retoma a conversa", "Reaquece o interesse", "Reposiciona no funil"],
     status: "Rascunho"
   }
 ];
@@ -34,54 +34,75 @@ export const inbox = [
     id: "msg-01",
     origin: "WhatsApp",
     contact: "Marina Costa",
-    text: "Oi, quero saber como funciona para minha clínica.",
+    text: "Oi, quero entender como automatizar o atendimento da minha clínica.",
     status: "Novo"
   },
   {
     id: "msg-02",
     origin: "Instagram",
     contact: "@studioalma",
-    text: "Vi o reels e quero automatizar meu atendimento.",
+    text: "Vi o vídeo e quero colocar isso no meu time comercial.",
     status: "Respondido"
   },
   {
     id: "msg-03",
     origin: "WhatsApp",
     contact: "Rafael Lopes",
-    text: "Consigo automatizar a resposta da primeira triagem?",
+    text: "Consigo automatizar a primeira triagem do atendimento?",
     status: "Em fila"
   }
 ];
 
 export const timeline = [
-  "A mensagem entra no canal certo",
-  "A Klio identifica o gatilho e ativa o bot certo",
-  "O fluxo responde, qualifica e organiza a conversa",
-  "A equipe assume só quando realmente faz sentido"
+  {
+    title: "A mensagem chega",
+    description: "O contato entra no canal certo e a conversa já começa organizada."
+  },
+  {
+    title: "A Klio responde",
+    description: "O bot faz a abertura, entende o interesse e conduz sem demora."
+  },
+  {
+    title: "O lead é qualificado",
+    description: "As informações principais ficam prontas para a próxima decisão."
+  },
+  {
+    title: "Sua equipe assume no momento certo",
+    description: "O repasse acontece só quando vale a pena entrar para fechar."
+  }
 ];
 
 export const resultSignals = [
   {
-    label: "Tempo de primeira resposta",
+    label: "Primeira resposta",
     value: "-72%",
-    detail: "o bot assume a abertura da conversa sem esperar operador"
+    detail: "A conversa começa mais rápido e o lead esfria menos."
   },
   {
-    label: "Leads qualificados",
+    label: "Leads aproveitados",
     value: "+41%",
-    detail: "gatilhos e perguntas iniciais filtram melhor a intenção"
+    detail: "Mais contatos avançam porque a resposta chega na hora certa."
   },
   {
-    label: "Horas recuperadas",
+    label: "Tempo liberado",
     value: "137h",
-    detail: "a equipe foca nas conversas que realmente precisam de atenção humana"
+    detail: "A equipe para de repetir tarefas e foca no que realmente converte."
   }
 ];
 
 export const landingProof = [
-  "Ative bots por gatilho sem depender de soluções improvisadas",
-  "Transforme mensagens em ações reais",
-  "Escalone o atendimento com repasse humano no momento certo"
+  {
+    title: "Resposta mais rápida",
+    description: "A Klio entra primeiro, responde na hora e tira o atendimento do modo manual."
+  },
+  {
+    title: "Mais controle da operação",
+    description: "Toda conversa avança com contexto, status e próximo passo bem definidos."
+  },
+  {
+    title: "Escala sem inflar equipe",
+    description: "Você cresce o volume do atendimento sem aumentar o time no mesmo ritmo."
+  }
 ];
 
 export const plans = [
@@ -93,42 +114,35 @@ export const plans = [
     badge: "Entrada",
     highlight: false,
     billing: "Sem desconto anual",
-    audience: "Indicado para quem está começando",
-    description: "Base essencial para iniciar o atendimento automatizado com os primeiros gatilhos e respostas.",
+    audience: "Para quem está começando",
+    description: "Estrutura essencial para sair do atendimento manual e ativar os primeiros fluxos.",
     checkoutEnabled: true,
     ctaLabel: "Escolher Start",
     features: [
       "1 canal: WhatsApp ou Instagram",
       "Até 3 automações simples",
       "Respostas automáticas básicas",
-      "Templates limitados",
-      "Limite menor de contatos e mensagens",
-      "Dashboard simples",
-      "Suporte básico"
+      "Dashboard simples"
     ],
-    limitations: ["Sem campanhas automatizadas", "Sem segmentação"]
+    limitations: ["Sem campanhas automáticas"]
   },
   {
     id: "starter",
     name: "Starter",
     monthlyPrice: 357.9,
     price: "R$ 357,90/mês",
-    badge: "Popular",
+    badge: "Escolha segura",
     highlight: false,
-    billing: "15% OFF anual - 10% OFF parcelado",
-    audience: "Indicado para pequenos negócios",
-    description: "Melhor equilíbrio para operar em dois canais com mais contexto e flexibilidade.",
+    billing: "15% OFF anual · 10% OFF parcelado",
+    audience: "Para pequenos negócios",
+    description: "Melhor ponto para operar em dois canais com mais contexto e mais consistência.",
     checkoutEnabled: true,
     ctaLabel: "Escolher Starter",
     features: [
       "WhatsApp + Instagram",
       "Até 10 automações",
       "Fluxos personalizados",
-      "Templates prontos",
-      "Respostas inteligentes",
-      "Limite médio de mensagens",
-      "Dashboard com métricas básicas",
-      "Suporte padrão"
+      "Métricas básicas"
     ],
     limitations: []
   },
@@ -137,23 +151,18 @@ export const plans = [
     name: "Scale",
     monthlyPrice: 597.9,
     price: "R$ 597,90/mês",
-    badge: "Mais recomendado",
+    badge: "Melhor custo-benefício",
     highlight: true,
-    billing: "20% OFF anual - 10% OFF parcelado",
-    audience: "Indicado para empresas em crescimento",
-    description: "Camada premium da Klio para equipes que precisam de automação conversacional mais profunda.",
+    billing: "20% OFF anual · 10% OFF parcelado",
+    audience: "Para empresas em crescimento",
+    description: "O plano mais forte para equipes que querem escala, campanhas e visão real da operação.",
     checkoutEnabled: true,
     ctaLabel: "Assinar Scale",
     features: [
-      "Todos os canais: WhatsApp, Instagram, Messenger e Telegram",
+      "Todos os canais principais",
       "Automações avançadas",
       "Segmentação de leads",
-      "Campanhas automáticas",
-      "Funil de vendas automatizado",
-      "Analytics avançado",
-      "Integração com CRM",
-      "Multiusuários",
-      "Suporte prioritário"
+      "Analytics e CRM"
     ],
     limitations: []
   },
@@ -162,22 +171,18 @@ export const plans = [
     name: "Enterprise",
     monthlyPrice: null,
     price: "Sob consulta",
-    badge: "Custom",
+    badge: "Sob medida",
     highlight: false,
-    billing: "Projeto sob medida",
-    audience: "Indicado para operações complexas",
-    description: "Formato consultivo para operações com API própria, regras complexas e alta volumetria.",
+    billing: "Projeto personalizado",
+    audience: "Para operações complexas",
+    description: "Formato consultivo com infraestrutura dedicada, estratégia personalizada e suporte prioritário.",
     checkoutEnabled: false,
     ctaLabel: "Falar com vendas",
     features: [
       "Tudo do Scale",
       "Automações ilimitadas",
-      "API personalizada",
-      "Gerente de conta",
-      "SLA de suporte",
       "Infraestrutura dedicada",
-      "Onboarding personalizado",
-      "Estratégia sob medida"
+      "Gerente de conta"
     ],
     limitations: []
   }

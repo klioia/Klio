@@ -1,63 +1,103 @@
+"use client";
+
+import { motion } from "framer-motion";
+
 export function Hero() {
   return (
     <section className="section hero-section">
-      <div className="shell hero-grid hero-content">
-        <div>
-          <span className="eyebrow">Atendimento automatizado em um só lugar</span>
-          <h1 className="hero-title">Automatize conversas e responda mais rápido no WhatsApp e Instagram.</h1>
-          <p className="muted">
-            A Klio organiza seu atendimento, responde no tempo certo e entrega cada conversa para a pessoa certa sem
-            deixar a operação pesada.
-          </p>
-          <div className="cta-row" style={{ marginTop: 24 }}>
-            <a className="btn btn-primary" href="#planos">
-              Ver planos
-            </a>
-            <a className="btn btn-secondary" href="/register">
-              Criar conta
-            </a>
-          </div>
-          <div className="hero-proof-row" style={{ marginTop: 18 }}>
-            <span className="mini">Planos a partir de R$ 259,90/mês</span>
-            <span className="mini">WhatsApp + Instagram</span>
-            <span className="mini">Fluxos, bot e atendimento organizado</span>
-          </div>
-        </div>
+      <div className="shell hero-layout">
+        <motion.div
+          className="hero-copy"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <motion.span
+            className="hero-badge"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+          >
+            <span className="hero-badge-dot" />
+            Novo — Automação com IA integrada →
+          </motion.span>
 
-        <div className="hero-clean">
-          <div className="card panel hero-surface hero-workspace">
-            <div className="hero-workspace-head">
+          <h1 className="hero-display">Automatize conversas. Escale sem contratar.</h1>
+          <p className="hero-subtitle">
+            Centralize WhatsApp, Instagram, Messenger e Telegram em uma operação mais rápida, elegante e previsível.
+          </p>
+
+          <div className="cta-row hero-actions">
+            <motion.a whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="btn btn-primary hero-primary-cta" href="/register">
+              Começar grátis
+            </motion.a>
+            <motion.a whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="btn btn-secondary hero-secondary-cta" href="#automacoes">
+              Ver demo
+            </motion.a>
+          </div>
+
+          <div className="hero-proof-row">
+            <span className="mini">IA aplicada ao atendimento</span>
+            <span className="mini">Fluxos multicanal</span>
+            <span className="mini">Escala sem inflar equipe</span>
+          </div>
+        </motion.div>
+
+        <motion.div
+          className="hero-visual-wrap"
+          initial={{ opacity: 0, y: 34 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <motion.div
+            className="hero-dashboard"
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <div className="hero-dashboard-top">
               <div>
-                <strong>Klio Flow Engine</strong>
-                <div className="mini">painel conversacional para automações e repasse de atendimento</div>
+                <strong>Klio Control Panel</strong>
+                <div className="mini">automação ativa em tempo real</div>
               </div>
               <span className="pricing-badge pricing-badge-featured">online</span>
             </div>
-            <div className="hero-node-grid">
-              <article className="hero-node hero-node-entry">
+
+            <div className="hero-dashboard-grid">
+              <article className="hero-panel hero-panel-large">
                 <span className="mini">Entrada</span>
-                <strong>Mensagem recebida</strong>
-                <p className="mini">A conversa entra no canal certo sem atraso.</p>
+                <strong>Mensagem recebida no Instagram</strong>
+                <p className="mini">Cliente pediu orçamento e a Klio respondeu em segundos.</p>
               </article>
-              <article className="hero-node">
+              <article className="hero-panel">
                 <span className="mini">Bot</span>
-                <strong>Resposta automática</strong>
-                <p className="mini">Qualifica e conduz a conversa.</p>
+                <strong>Qualificação automática</strong>
+                <p className="mini">Pergunta intenção, urgência e canal preferido.</p>
               </article>
-              <article className="hero-node hero-node-highlight hero-node-wide">
-                <span className="mini">Repasse</span>
-                <strong>Equipe comercial</strong>
-                <p className="mini">Recebe contexto antes de assumir o contato.</p>
+              <article className="hero-panel">
+                <span className="mini">Equipe</span>
+                <strong>Repasse com contexto</strong>
+                <p className="mini">O vendedor recebe a conversa já pronta para fechar.</p>
+              </article>
+              <article className="hero-panel hero-panel-wide">
+                <div className="hero-mini-metrics">
+                  <div>
+                    <span className="mini">tempo de resposta</span>
+                    <strong>12s</strong>
+                  </div>
+                  <div>
+                    <span className="mini">leads qualificados hoje</span>
+                    <strong>84</strong>
+                  </div>
+                  <div>
+                    <span className="mini">fluxos em execução</span>
+                    <strong>42</strong>
+                  </div>
+                </div>
               </article>
             </div>
-          </div>
-          <div className="hero-note hero-note-premium">
-            <strong>Pronta para operar</strong>
-            <p className="muted" style={{ marginBottom: 0 }}>
-              Configure canais, ative fluxos e coloque sua automação no ar sem uma interface poluída.
-            </p>
-          </div>
-        </div>
+          </motion.div>
+          <div className="hero-dashboard-reflection" />
+        </motion.div>
       </div>
     </section>
   );
