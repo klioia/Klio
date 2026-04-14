@@ -3,48 +3,51 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { automations, features, plans, resultSignals, timeline } from "@/lib/mock-data";
 import { LandingReveal } from "@/components/landing-reveal";
-import { motion } from "framer-motion";
 
 type CounterProps = {
   value: number;
-  suffix?: string;
   prefix?: string;
+  suffix?: string;
+  suffixAfterSpace?: string;
 };
 
-function Counter({ value, suffix = "", prefix = "" }: CounterProps) {
+function Counter({ value, prefix = "", suffix = "", suffixAfterSpace = "" }: CounterProps) {
   const ref = useRef<HTMLSpanElement | null>(null);
   const [current, setCurrent] = useState(0);
+  const startedRef = useRef(false);
 
   useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
+    const node = ref.current;
+    if (!node) return;
 
-    let animationFrame = 0;
-    let started = false;
-    const duration = 900;
+    let frame = 0;
+    const duration = 1200;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting || started) return;
-        started = true;
+        if (!entry.isIntersecting || startedRef.current) return;
+        startedRef.current = true;
         const start = performance.now();
-        const loop = (now: number) => {
+
+        const tick = (now: number) => {
           const progress = Math.min((now - start) / duration, 1);
           const eased = 1 - Math.pow(1 - progress, 3);
           setCurrent(Math.round(value * eased));
           if (progress < 1) {
-            animationFrame = requestAnimationFrame(loop);
+            frame = requestAnimationFrame(tick);
           }
         };
-        animationFrame = requestAnimationFrame(loop);
+
+        frame = requestAnimationFrame(tick);
       },
       { threshold: 0.35 }
     );
 
-    observer.observe(element);
+    observer.observe(node);
+
     return () => {
       observer.disconnect();
-      cancelAnimationFrame(animationFrame);
+      cancelAnimationFrame(frame);
     };
   }, [value]);
 
@@ -53,6 +56,7 @@ function Counter({ value, suffix = "", prefix = "" }: CounterProps) {
       {prefix}
       {current}
       {suffix}
+      {suffixAfterSpace ? <span className="result-unit">/{suffixAfterSpace}</span> : null}
     </span>
   );
 }
@@ -63,64 +67,6 @@ function formatPrice(value: number) {
     currency: "BRL",
     minimumFractionDigits: 2
   }).format(value);
-}
-
-export function FlowEngineSection() {
-  return (
-    <section className="section" id="flow-engine">
-      <div className="shell">
-        <LandingReveal>
-          <span className="eyebrow">Flow Engine</span>
-          <h2 className="section-title">Um motor conversacional que não perde o timing.</h2>
-        </LandingReveal>
-
-        <LandingReveal delay={0.1}>
-          <motion.div
-            className="card panel flow-engine-card"
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <div className="flow-engine-head">
-              <div>
-                <strong>Flow Engine</strong>
-                <p className="mini">Fluxo ativo em tempo real com IA e repasse inteligente.</p>
-              </div>
-              <span className="status-pill">
-                <span className="status-dot" />
-                online
-              </span>
-            </div>
-            <div className="flow-engine-steps">
-              {["Entrada", "Bot", "Repasse"].map((step, index) => (
-                <motion.div
-                  className="flow-engine-step"
-                  key={step}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.4 }}
-                  transition={{ delay: 0.15 + index * 0.15, duration: 0.5 }}
-                >
-                  <span className="mini">{step}</span>
-                  <strong>
-                    {step === "Entrada" && "Mensagem chega do Instagram"}
-                    {step === "Bot" && "IA qualifica e organiza"}
-                    {step === "Repasse" && "Equipe assume com contexto"}
-                  </strong>
-                  <p className="mini">
-                    {step === "Entrada" && "Palavra-chave detectada e contexto capturado na hora."}
-                    {step === "Bot" && "Perguntas certas, interesse identificado e lead pronto."}
-                    {step === "Repasse" && "Vendedor recebe o resumo e fecha mais rápido."}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </LandingReveal>
-      </div>
-    </section>
-  );
 }
 
 export function FeatureSection() {
@@ -186,7 +132,7 @@ export function AutomationSection() {
                       </div>
                       <div className="mini">{automation.trigger}</div>
                     </div>
-                    <span className={`status-pill${automation.status === "Ativa" ? " status-pill-success" : " status-pill-muted"}`}>
+                    <span className={automation.status === "Ativa" ? "status-pill status-pill-success" : "status-pill status-pill-muted"}>
                       {automation.status}
                     </span>
                   </div>
@@ -210,20 +156,22 @@ export function AutomationSection() {
 export function PricingSection() {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
 
-  const pricingPlans = useMemo(() => {
-    return plans.map((plan) => {
-      if (!plan.monthlyPrice) return plan;
-      const annualPrice = plan.monthlyPrice * (1 - plan.annualDiscount);
-      return {
-        ...plan,
-        price: billing === "monthly" ? `${formatPrice(plan.monthlyPrice)}/mês` : `${formatPrice(annualPrice)}/mês`,
-        billing:
-          billing === "monthly"
-            ? plan.billingMonthly
-            : `${Math.round(plan.annualDiscount * 100)}% OFF anual · ${plan.billingMonthly}`
-      };
-    });
-  }, [billing]);
+  const pricingPlans = useMemo(
+    () =>
+      plans.map((plan) => {
+        if (!plan.monthlyPrice) return plan;
+        const annualPrice = plan.monthlyPrice * (1 - plan.annualDiscount);
+        return {
+          ...plan,
+          price: billing === "monthly" ? `${formatPrice(plan.monthlyPrice)}/mês` : `${formatPrice(annualPrice)}/mês`,
+          billing:
+            billing === "monthly"
+              ? plan.billingMonthly
+              : `${Math.round(plan.annualDiscount * 100)}% OFF anual · ${plan.billingMonthly}`
+        };
+      }),
+    [billing]
+  );
 
   return (
     <section className="section" id="planos">
@@ -281,12 +229,7 @@ export function PricingSection() {
                 {plan.freeTrial ? <p className="mini pricing-note">Teste grátis por 7 dias</p> : null}
                 <div className="cta-row" style={{ marginTop: 18 }}>
                   {plan.id === "enterprise" ? (
-                    <a
-                      className="btn btn-secondary"
-                      href="https://wa.me/5500000000000?text=Quero%20falar%20com%20vendas%20da%20Klio"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
+                    <a className="btn btn-secondary" href="#">
                       Falar com vendas
                     </a>
                   ) : (
@@ -320,7 +263,12 @@ export function ResultsSection() {
                 <span className="result-icon">{signal.icon}</span>
                 <span className="mini">{signal.label}</span>
                 <div className="result-value">
-                  <Counter value={signal.value} prefix={signal.prefix} suffix={signal.suffix} />
+                  <Counter
+                    value={signal.value}
+                    prefix={signal.prefix}
+                    suffix={signal.suffix}
+                    suffixAfterSpace={signal.suffixAfterSpace}
+                  />
                 </div>
                 <p className="muted" style={{ marginBottom: 0 }}>
                   {signal.detail}

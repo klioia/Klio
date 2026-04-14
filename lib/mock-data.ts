@@ -97,6 +97,7 @@ export const resultSignals = [
     label: "Tempo liberado",
     value: 137,
     suffix: "h",
+    suffixAfterSpace: "mês",
     detail: "A equipe para de repetir tarefas e foca no que realmente converte."
   },
   {

@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         ok: false,
-        error: error instanceof Error ? error.message : "Falha ao criar usuario."
+        error: error instanceof Error ? error.message : "Falha ao criar usuário."
       },
       { status: 400 }
     );

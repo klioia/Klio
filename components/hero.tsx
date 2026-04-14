@@ -1,10 +1,17 @@
-﻿"use client";
+"use client";
 
 import { motion } from "framer-motion";
 
+const avatars = [
+  { label: "Larissa", initials: "LM", className: "avatar-gradient-1" },
+  { label: "Rafael", initials: "RS", className: "avatar-gradient-2" },
+  { label: "Bianca", initials: "BC", className: "avatar-gradient-3" },
+  { label: "Kaique", initials: "KB", className: "avatar-gradient-4" }
+];
+
 export function Hero() {
   return (
-    <section className="section hero-section">
+    <section className="section hero-section" id="flow-engine">
       <div className="shell hero-layout">
         <motion.div
           className="hero-copy"
@@ -47,10 +54,11 @@ export function Hero() {
 
           <div className="hero-social-proof">
             <div className="hero-avatars">
-              <span className="avatar">AC</span>
-              <span className="avatar">LM</span>
-              <span className="avatar">RS</span>
-              <span className="avatar">KB</span>
+              {avatars.map((avatar) => (
+                <span key={avatar.label} className={`avatar ${avatar.className}`}>
+                  {avatar.initials}
+                </span>
+              ))}
             </div>
             <div>
               <strong>+500 empresas já automatizam com a Klio</strong>
@@ -72,10 +80,13 @@ export function Hero() {
           >
             <div className="hero-dashboard-top">
               <div>
-                <strong>Klio Control Panel</strong>
+                <strong>Klio Flow Engine</strong>
                 <div className="mini">automação ativa em tempo real</div>
               </div>
-              <span className="pricing-badge pricing-badge-featured">online</span>
+              <span className="status-pill status-pill-success">
+                <span className="status-dot" />
+                online
+              </span>
             </div>
 
             <div className="hero-dashboard-grid">
@@ -118,4 +129,3 @@ export function Hero() {
     </section>
   );
 }
-

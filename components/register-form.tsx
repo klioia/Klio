@@ -10,9 +10,9 @@ export function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -26,7 +26,7 @@ export function RegisterForm() {
     }
 
     if (!acceptedTerms) {
-      setError("Aceite os termos para continuar.");
+      setError("Aceite os Termos de Uso e a Política de Privacidade para continuar.");
       setLoading(false);
       return;
     }
@@ -34,12 +34,7 @@ export function RegisterForm() {
     const response = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        company,
-        name,
-        email,
-        password
-      })
+      body: JSON.stringify({ company, name, email, password })
     });
 
     const data = await response.json();
@@ -55,89 +50,100 @@ export function RegisterForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="auth-form">
-      <label className="field">
-        <span className="mini">Nome da empresa</span>
-        <div className="input-wrap">
-          <span className="input-icon">🏢</span>
-          <input
-            className="input"
-            placeholder="Minha Empresa"
-            onChange={(event) => setCompany(event.target.value)}
-            value={company}
-            required
-          />
-        </div>
-      </label>
-      <label className="field">
-        <span className="mini">Nome do admin</span>
-        <div className="input-wrap">
-          <span className="input-icon">👤</span>
-          <input
-            className="input"
-            placeholder="Seu nome"
-            onChange={(event) => setName(event.target.value)}
-            value={name}
-            required
-          />
-        </div>
-      </label>
-      <label className="field">
-        <span className="mini">Email</span>
-        <div className="input-wrap">
-          <span className="input-icon">✉</span>
-          <input
-            className="input"
-            placeholder="voce@empresa.com"
-            onChange={(event) => setEmail(event.target.value)}
-            value={email}
-            required
-          />
-        </div>
-      </label>
-      <label className="field">
-        <span className="mini">Senha</span>
-        <div className="input-wrap">
-          <span className="input-icon">🔒</span>
-          <input
-            className="input"
-            type="password"
-            placeholder="Crie uma senha forte"
-            onChange={(event) => setPassword(event.target.value)}
-            value={password}
-            required
-          />
-        </div>
-      </label>
-      <label className="field">
-        <span className="mini">Confirmar senha</span>
-        <div className="input-wrap">
-          <span className="input-icon">🔁</span>
-          <input
-            className="input"
-            type="password"
-            placeholder="Repita sua senha"
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            value={confirmPassword}
-            required
-          />
-        </div>
-      </label>
-      <label className="checkbox">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <label className="block">
+        <span className="mb-2 block text-sm font-medium text-slate-200">Nome da empresa</span>
         <input
+          className="h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 text-white outline-none transition focus:border-violet-500"
+          placeholder="Minha empresa"
+          value={company}
+          onChange={(event) => setCompany(event.target.value)}
+          required
+        />
+      </label>
+
+      <label className="block">
+        <span className="mb-2 block text-sm font-medium text-slate-200">Seu nome</span>
+        <input
+          className="h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 text-white outline-none transition focus:border-violet-500"
+          placeholder="Seu nome"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          required
+        />
+      </label>
+
+      <label className="block">
+        <span className="mb-2 block text-sm font-medium text-slate-200">Email</span>
+        <input
+          className="h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 text-white outline-none transition focus:border-violet-500"
+          placeholder="voce@empresa.com"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          required
+        />
+      </label>
+
+      <label className="block">
+        <span className="mb-2 block text-sm font-medium text-slate-200">Senha</span>
+        <input
+          className="h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 text-white outline-none transition focus:border-violet-500"
+          type="password"
+          placeholder="Crie uma senha forte"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          required
+        />
+      </label>
+
+      <label className="block">
+        <span className="mb-2 block text-sm font-medium text-slate-200">Confirmar senha</span>
+        <input
+          className="h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 text-white outline-none transition focus:border-violet-500"
+          type="password"
+          placeholder="Repita sua senha"
+          value={confirmPassword}
+          onChange={(event) => setConfirmPassword(event.target.value)}
+          required
+        />
+      </label>
+
+      <label className="flex items-start gap-3 text-sm text-slate-400">
+        <input
+          className="mt-1 h-4 w-4 rounded border-slate-700 bg-slate-950 text-violet-600"
           type="checkbox"
           checked={acceptedTerms}
           onChange={(event) => setAcceptedTerms(event.target.checked)}
         />
-        <span>Li e concordo com os termos e a política de privacidade.</span>
+        <span>
+          Concordo com os{" "}
+          <a className="text-violet-400 transition hover:text-violet-300" href="/terms">
+            Termos de Uso
+          </a>{" "}
+          e{" "}
+          <a className="text-violet-400 transition hover:text-violet-300" href="/privacy">
+            Política de Privacidade
+          </a>
+          .
+        </span>
       </label>
-      {error ? <p className="mini auth-error">{error}</p> : null}
-      <button className="btn btn-primary btn-full" disabled={loading} type="submit">
+
+      {error ? <p className="text-sm text-rose-400">{error}</p> : null}
+
+      <button
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 font-medium text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-70"
+        disabled={loading}
+        type="submit"
+      >
         {loading ? <span className="spinner" aria-hidden="true" /> : null}
-        {loading ? "Criando..." : "Ativar workspace"}
+        {loading ? "Criando conta..." : "Criar conta e começar"}
       </button>
-      <p className="mini auth-footer">
-        Já tem conta? <a href="/login">Entrar na Klio</a>
+
+      <p className="text-center text-sm text-slate-400">
+        Já tem conta?{" "}
+        <a className="text-violet-400 transition hover:text-violet-300" href="/login">
+          Entrar
+        </a>
       </p>
     </form>
   );

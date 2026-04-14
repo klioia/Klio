@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   const user = await authenticate(body.email, body.password);
 
   if (!user) {
-    return NextResponse.json({ ok: false, error: "Email ou senha invalidos." }, { status: 401 });
+    return NextResponse.json({ ok: false, error: "Email ou senha inválidos." }, { status: 401 });
   }
 
   await createSession(user);

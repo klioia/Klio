@@ -28,9 +28,9 @@ const footerColumns = [
 ];
 
 const socialLinks = [
-  { label: "Instagram", href: "https://instagram.com" },
-  { label: "LinkedIn", href: "https://linkedin.com" },
-  { label: "X", href: "https://x.com" }
+  { label: "Instagram", href: "https://instagram.com/klioflow" },
+  { label: "LinkedIn", href: "#" },
+  { label: "X", href: "#" }
 ];
 
 export function Footer() {
@@ -39,12 +39,10 @@ export function Footer() {
       <div className="shell footer-inner">
         <div className="footer-brand">
           <Brand compact />
-          <p className="mini">
-            Automação conversacional para equipes que querem responder mais rápido e vender com mais consistência.
-          </p>
+          <p className="mini">Automação conversacional para equipes que querem responder mais rápido e vender com mais consistência.</p>
           <div className="footer-social">
             {socialLinks.map((link) => (
-              <a key={link.label} href={link.href} target="_blank" rel="noreferrer">
+              <a key={link.label} href={link.href} target={link.href.startsWith("http") ? "_blank" : undefined} rel="noreferrer">
                 {link.label}
               </a>
             ))}
@@ -69,8 +67,8 @@ export function Footer() {
       <div className="shell footer-bottom">
         <span className="mini">© 2026 Klio. Todos os direitos reservados.</span>
         <div className="footer-legal">
-          <a href="#">Termos</a>
-          <a href="#">Privacidade</a>
+          <a href="/terms">Termos</a>
+          <a href="/privacy">Privacidade</a>
         </div>
       </div>
     </footer>
