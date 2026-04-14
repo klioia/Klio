@@ -19,12 +19,12 @@ export function ProcessJobsButton() {
     const data = await response.json();
 
     if (!response.ok) {
-      setStatus(data.error || "Falha ao processar pendencias.");
+      setStatus(data.error || "Falha ao processar pendências.");
       setLoading(false);
       return;
     }
 
-    setStatus(`Processadas: ${data.processed} - Pendentes: ${data.pending}`);
+    setStatus(`Processadas: ${data.processed} · Pendentes: ${data.pending}`);
     setLoading(false);
     router.refresh();
   }
@@ -32,7 +32,7 @@ export function ProcessJobsButton() {
   return (
     <div className="flow-list">
       <button className="btn btn-primary" disabled={loading} onClick={handleProcess} type="button">
-        {loading ? "Processando..." : "Processar pendencias"}
+        {loading ? "Processando..." : "Processar pendências"}
       </button>
       {status ? <span className="mini">{status}</span> : null}
     </div>

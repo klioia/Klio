@@ -381,12 +381,42 @@ button, input, select, textarea { font: inherit; }
   display: block;
   margin-top: 6px;
 }
+.builder-template-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.builder-template {
+  text-align: left;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(160, 153, 255, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 160ms ease, transform 160ms ease, background 160ms ease;
+}
+.builder-template:hover {
+  transform: translateY(-2px);
+  border-color: rgba(196, 187, 255, 0.28);
+  background: rgba(143, 131, 255, 0.06);
+}
 .premium-preview {
   margin-top: 22px;
 }
 .builder-status {
   margin-top: 16px;
   color: var(--brand-soft);
+}
+.builder-selected-flow {
+  margin-top: 18px;
+  display: grid;
+  gap: 14px;
+}
+.builder-selected-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 .builder-empty-state {
   padding: 28px;
@@ -673,6 +703,30 @@ button, input, select, textarea { font: inherit; }
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.035), rgba(143, 131, 255, 0.04)),
     rgba(255, 255, 255, 0.03);
+}
+.flow-item-button {
+  width: 100%;
+  border: 1px solid rgba(160, 153, 255, 0.12);
+  cursor: pointer;
+  color: inherit;
+}
+.flow-item-button-active {
+  border-color: rgba(196, 187, 255, 0.3);
+  box-shadow: inset 0 0 0 1px rgba(196, 187, 255, 0.12);
+}
+.integration-overview-grid,
+.integration-copy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.integration-copy-card {
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(160, 153, 255, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+  display: grid;
+  gap: 10px;
 }
 .automation-card-premium {
   background:
@@ -1479,7 +1533,7 @@ button, input, select, textarea { font: inherit; }
   .hero-node-wide { grid-column: auto; }
   .orchestration-lane { grid-template-columns: 1fr; }
   .hero-metrics { grid-template-columns: 1fr; }
-  .dashboard-shortcuts, .builder-summary-grid, .lead-meta-grid, .integration-setup-grid { grid-template-columns: 1fr; }
+  .dashboard-shortcuts, .builder-summary-grid, .lead-meta-grid, .integration-setup-grid, .builder-template-grid, .builder-selected-meta, .integration-overview-grid, .integration-copy-grid { grid-template-columns: 1fr; }
   .hero-title { max-width: 12ch; }
   .hero-display { max-width: 11ch; }
   .auto-run-box { flex-direction: column; align-items: flex-start; }

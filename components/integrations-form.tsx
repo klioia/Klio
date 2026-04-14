@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
 type IntegrationState = {
   whatsapp: {
@@ -36,49 +36,72 @@ export function IntegrationsForm({ appUrl, initialState }: IntegrationsFormProps
   const [testRecipient, setTestRecipient] = useState("");
   const [testMessage, setTestMessage] = useState("Oi, esta é uma mensagem de teste da Klio.");
   const [showSecrets, setShowSecrets] = useState(false);
+  const [activeAction, setActiveAction] = useState("");
+
+  async function copyValue(value: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setStatus(`${label} copiado.`);
+    } catch {
+      setStatus(`Não foi possível copiar ${label.toLowerCase()}.`);
+    }
+  }
+
+  async function runAction(actionKey: string, callback: () => Promise<void>) {
+    setActiveAction(actionKey);
+    try {
+      await callback();
+    } finally {
+      setActiveAction("");
+    }
+  }
 
   async function save(channel: "whatsapp" | "instagram" | "pix") {
-    setStatus("Salvando integração...");
+    await runAction(`save-${channel}`, async () => {
+      setStatus("Salvando integração...");
 
-    const values =
-      channel === "whatsapp"
-        ? {
-            phoneNumberId: state.whatsapp.phoneNumberId,
-            accessToken: state.whatsapp.accessToken || "",
-            verifyToken: state.whatsapp.verifyToken || ""
-          }
-        : channel === "instagram"
+      const values =
+        channel === "whatsapp"
           ? {
-              appId: state.instagram.appId,
-              accessToken: state.instagram.accessToken || "",
-              verifyToken: state.instagram.verifyToken || ""
+              phoneNumberId: state.whatsapp.phoneNumberId,
+              accessToken: state.whatsapp.accessToken || "",
+              verifyToken: state.whatsapp.verifyToken || ""
             }
-          : {
-              provider: state.pix.provider,
-              accessToken: state.pix.accessToken || ""
-            };
+          : channel === "instagram"
+            ? {
+                appId: state.instagram.appId,
+                accessToken: state.instagram.accessToken || "",
+                verifyToken: state.instagram.verifyToken || ""
+              }
+            : {
+                provider: state.pix.provider,
+                accessToken: state.pix.accessToken || ""
+              };
 
-    const response = await fetch("/api/integrations", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ channel, values })
+      const response = await fetch("/api/integrations", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channel, values })
+      });
+
+      const data = await response.json();
+      setStatus(response.ok ? "Integração salva com sucesso." : data.error || "Falha ao salvar.");
     });
-
-    const data = await response.json();
-    setStatus(response.ok ? "Integração salva com sucesso." : data.error || "Falha ao salvar.");
   }
 
   async function test(channel: "whatsapp" | "instagram") {
-    setStatus(`Testando ${channel === "whatsapp" ? "WhatsApp" : "Instagram"}...`);
+    await runAction(`test-${channel}`, async () => {
+      setStatus(`Testando ${channel === "whatsapp" ? "WhatsApp" : "Instagram"}...`);
 
-    const response = await fetch("/api/integrations", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ channel })
+      const response = await fetch("/api/integrations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ channel })
+      });
+
+      const data = await response.json();
+      setStatus(response.ok ? "Conexão validada com sucesso." : data.error || "Falha no teste.");
     });
-
-    const data = await response.json();
-    setStatus(response.ok ? "Conexão validada com sucesso." : data.error || "Falha no teste.");
   }
 
   async function sendTestMessage(channel: "whatsapp" | "instagram") {
@@ -87,20 +110,22 @@ export function IntegrationsForm({ appUrl, initialState }: IntegrationsFormProps
       return;
     }
 
-    setStatus(`Enviando teste em ${channel === "whatsapp" ? "WhatsApp" : "Instagram"}...`);
+    await runAction(`send-${channel}`, async () => {
+      setStatus(`Enviando teste em ${channel === "whatsapp" ? "WhatsApp" : "Instagram"}...`);
 
-    const response = await fetch("/api/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        channel,
-        recipient: testRecipient,
-        message: testMessage
-      })
+      const response = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          channel,
+          recipient: testRecipient,
+          message: testMessage
+        })
+      });
+
+      const data = await response.json();
+      setStatus(response.ok ? "Mensagem de teste enviada." : data.error || "Falha no envio.");
     });
-
-    const data = await response.json();
-    setStatus(response.ok ? "Mensagem de teste enviada." : data.error || "Falha no envio.");
   }
 
   function submitHandler(event: FormEvent) {
@@ -110,70 +135,74 @@ export function IntegrationsForm({ appUrl, initialState }: IntegrationsFormProps
   const webhookUrl = `${appUrl}/api/meta/webhook`;
   const whatsappReady = Boolean(state.whatsapp.phoneNumberId && state.whatsapp.accessToken && state.whatsapp.verifyToken);
   const instagramReady = Boolean(state.instagram.appId && state.instagram.accessToken && state.instagram.verifyToken);
+  const setupCount = [whatsappReady, instagramReady].filter(Boolean).length;
+  const setupSummary = useMemo(
+    () => [
+      { label: "Webhook", value: "Pronto" },
+      { label: "WhatsApp", value: whatsappReady ? "Configurado" : "Pendente" },
+      { label: "Instagram", value: instagramReady ? "Configurado" : "Pendente" }
+    ],
+    [instagramReady, whatsappReady]
+  );
 
   return (
     <form onSubmit={submitHandler} className="flow-list">
       <section className="card panel">
         <div className="builder-section-header">
           <div>
-            <strong>Onboarding da Meta</strong>
+            <strong>Integrações principais</strong>
             <p className="mini" style={{ marginTop: 8 }}>
-              Use este bloco para configurar os canais, copiar o callback e validar o envio sem sair da Klio.
+              Configure os canais, copie os dados da Meta e valide tudo pela Klio.
             </p>
           </div>
-          <span className="pricing-badge pricing-badge-featured">setup</span>
+          <span className="pricing-badge pricing-badge-featured">{setupCount}/2 prontas</span>
         </div>
 
-        <div className="integration-setup-grid">
-          <div className="onboarding-box">
-            <strong>1. Abra seu app na Meta</strong>
-            <p className="mini">Ative WhatsApp Business Platform e Instagram Messaging.</p>
-          </div>
-          <div className="onboarding-box">
-            <strong>2. Configure o callback</strong>
-            <p className="mini">Cadastre a URL da Klio como callback principal.</p>
-          </div>
-          <div className="onboarding-box">
-            <strong>3. Cole seus tokens</strong>
-            <p className="mini">Preencha IDs, tokens e verify token em cada canal.</p>
-          </div>
-          <div className="onboarding-box">
-            <strong>4. Teste antes de ativar</strong>
-            <p className="mini">Valide conexão e envio antes de publicar fluxos.</p>
-          </div>
+        <div className="integration-overview-grid" style={{ marginTop: 18 }}>
+          {setupSummary.map((item) => (
+            <div className="builder-summary-card" key={item.label}>
+              <span className="mini">{item.label}</span>
+              <strong>{item.value}</strong>
+            </div>
+          ))}
         </div>
       </section>
 
       <section className="card panel">
         <div className="flow-item">
           <strong>Dados para copiar</strong>
-          <span className="tag tag-success">Klio setup</span>
+          <span className="tag tag-success">setup rápido</span>
         </div>
 
-        <label style={{ display: "block", marginTop: 18 }}>
-          <span className="mini">Webhook URL</span>
-          <input className="input" readOnly value={webhookUrl} />
-        </label>
-
-        <div className="grid-2" style={{ marginTop: 18 }}>
-          <label>
-            <span className="mini">Verify token do WhatsApp</span>
-            <input className="input" readOnly value={state.whatsapp.verifyToken || "Defina e salve abaixo"} />
-          </label>
-          <label>
-            <span className="mini">Verify token do Instagram</span>
-            <input className="input" readOnly value={state.instagram.verifyToken || "Defina e salve abaixo"} />
-          </label>
-        </div>
-
-        <div className="checklist" style={{ marginTop: 18 }}>
-          <div className="check-item">
-            <span className={whatsappReady ? "tag tag-success" : "tag tag-warning"}>{whatsappReady ? "OK" : "Pendente"}</span>
-            <span className="mini">WhatsApp com ID, token e verify token preenchidos</span>
+        <div className="integration-copy-grid" style={{ marginTop: 18 }}>
+          <div className="integration-copy-card">
+            <span className="mini">Webhook URL</span>
+            <strong>{webhookUrl}</strong>
+            <button className="btn btn-secondary" onClick={() => copyValue(webhookUrl, "Webhook URL")} type="button">
+              Copiar webhook
+            </button>
           </div>
-          <div className="check-item">
-            <span className={instagramReady ? "tag tag-success" : "tag tag-warning"}>{instagramReady ? "OK" : "Pendente"}</span>
-            <span className="mini">Instagram com App ID, token e verify token preenchidos</span>
+          <div className="integration-copy-card">
+            <span className="mini">Verify token do WhatsApp</span>
+            <strong>{state.whatsapp.verifyToken || "Defina e salve abaixo"}</strong>
+            <button
+              className="btn btn-secondary"
+              onClick={() => copyValue(state.whatsapp.verifyToken || "", "Verify token do WhatsApp")}
+              type="button"
+            >
+              Copiar token
+            </button>
+          </div>
+          <div className="integration-copy-card">
+            <span className="mini">Verify token do Instagram</span>
+            <strong>{state.instagram.verifyToken || "Defina e salve abaixo"}</strong>
+            <button
+              className="btn btn-secondary"
+              onClick={() => copyValue(state.instagram.verifyToken || "", "Verify token do Instagram")}
+              type="button"
+            >
+              Copiar token
+            </button>
           </div>
         </div>
       </section>
@@ -190,7 +219,10 @@ export function IntegrationsForm({ appUrl, initialState }: IntegrationsFormProps
       <div className="integration-card-grid">
         <section className="card panel">
           <div className="flow-item">
-            <strong>WhatsApp Business</strong>
+            <div>
+              <strong>WhatsApp Business</strong>
+              <div className="mini">Canal principal de atendimento e repasse</div>
+            </div>
             <span className={state.whatsapp.connected ? "tag tag-success" : "tag tag-warning"}>
               {state.whatsapp.connected ? "Conectado" : "Pendente"}
             </span>
@@ -238,20 +270,23 @@ export function IntegrationsForm({ appUrl, initialState }: IntegrationsFormProps
           </label>
           <div className="cta-row" style={{ marginTop: 18 }}>
             <button className="btn btn-primary" onClick={() => save("whatsapp")} type="button">
-              Salvar WhatsApp
+              {activeAction === "save-whatsapp" ? "Salvando..." : "Salvar WhatsApp"}
             </button>
             <button className="btn btn-secondary" onClick={() => test("whatsapp")} type="button">
-              Testar conexão
+              {activeAction === "test-whatsapp" ? "Testando..." : "Testar conexão"}
             </button>
             <button className="btn btn-secondary" onClick={() => sendTestMessage("whatsapp")} type="button">
-              Enviar teste
+              {activeAction === "send-whatsapp" ? "Enviando..." : "Enviar teste"}
             </button>
           </div>
         </section>
 
         <section className="card panel">
           <div className="flow-item">
-            <strong>Instagram Messaging</strong>
+            <div>
+              <strong>Instagram Messaging</strong>
+              <div className="mini">Responda comentários e DMs pelo mesmo painel</div>
+            </div>
             <span className={state.instagram.connected ? "tag tag-success" : "tag tag-warning"}>
               {state.instagram.connected ? "Conectado" : "Pendente"}
             </span>
@@ -299,13 +334,13 @@ export function IntegrationsForm({ appUrl, initialState }: IntegrationsFormProps
           </label>
           <div className="cta-row" style={{ marginTop: 18 }}>
             <button className="btn btn-primary" onClick={() => save("instagram")} type="button">
-              Salvar Instagram
+              {activeAction === "save-instagram" ? "Salvando..." : "Salvar Instagram"}
             </button>
             <button className="btn btn-secondary" onClick={() => test("instagram")} type="button">
-              Testar conexão
+              {activeAction === "test-instagram" ? "Testando..." : "Testar conexão"}
             </button>
             <button className="btn btn-secondary" onClick={() => sendTestMessage("instagram")} type="button">
-              Enviar teste
+              {activeAction === "send-instagram" ? "Enviando..." : "Enviar teste"}
             </button>
           </div>
         </section>
@@ -337,4 +372,3 @@ export function IntegrationsForm({ appUrl, initialState }: IntegrationsFormProps
     </form>
   );
 }
-

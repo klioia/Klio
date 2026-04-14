@@ -33,7 +33,7 @@ export function AutoProcessJobs({ intervalMs = 30000 }: AutoProcessJobsProps) {
         const data = await response.json();
 
         if (response.ok) {
-          setStatus(`Auto-run ativo - Processadas: ${data.processed} - Pendentes: ${data.pending}`);
+          setStatus(`Auto-run ativo · Processadas: ${data.processed} · Pendentes: ${data.pending}`);
 
           if (data.processed > 0) {
             router.refresh();

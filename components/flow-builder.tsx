@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { decodeTrigger } from "@/lib/automation-utils";
 
 type AutomationItem = {
   id: string;
@@ -14,6 +15,62 @@ type AutomationItem = {
 type FlowBuilderProps = {
   initialAutomations: AutomationItem[];
 };
+
+type Template = {
+  id: string;
+  title: string;
+  subtitle: string;
+  name: string;
+  channel: string;
+  triggerType: string;
+  keyword: string;
+  actionType: string;
+  message: string;
+  secondMessage: string;
+  delayMinutes: string;
+};
+
+const templates: Template[] = [
+  {
+    id: "lead",
+    title: "Qualificar lead",
+    subtitle: "Captura intenção e encaminha",
+    name: "Qualificação automática de lead",
+    channel: "instagram",
+    triggerType: "keyword",
+    keyword: "quero",
+    actionType: "handoff_whatsapp",
+    message: "Oi, vi seu interesse e posso te ajudar por aqui. Me conte rapidamente o que você quer automatizar primeiro.",
+    secondMessage: "Perfeito. Agora vou te encaminhar para um especialista com todo o contexto da conversa.",
+    delayMinutes: "10"
+  },
+  {
+    id: "support",
+    title: "Atendimento inicial",
+    subtitle: "Responde no próprio canal",
+    name: "Primeira resposta automática",
+    channel: "whatsapp",
+    triggerType: "new_message",
+    keyword: "",
+    actionType: "reply_same_channel",
+    message: "Olá. Recebi sua mensagem e já vou te ajudar. Me diga em uma frase o que você precisa agora.",
+    secondMessage: "Se preferir, também posso repassar seu atendimento para uma pessoa da equipe.",
+    delayMinutes: "5"
+  },
+  {
+    id: "alerts",
+    title: "Avisar equipe",
+    subtitle: "Notifica o time quando entrar oportunidade",
+    name: "Alerta interno de oportunidade",
+    channel: "multi",
+    triggerType: "keyword",
+    keyword: "orçamento",
+    actionType: "notify_team",
+    message: "Recebi seu pedido e a equipe já foi avisada para continuar o atendimento.",
+    secondMessage: "",
+    delayMinutes: "0"
+  }
+];
 
 function channelLabel(channel: string) {
   switch (channel) {
@@ -53,6 +110,10 @@ function actionLabel(actionType: string) {
   }
 }
 
+function decodeAutomation(item: AutomationItem) {
+  return decodeTrigger(item.trigger);
+}
+
 export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
   const [automations, setAutomations] = useState(initialAutomations);
   const [name, setName] = useState("Qualificação automática de lead");
@@ -69,9 +130,20 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
   const [delayMinutes, setDelayMinutes] = useState("10");
   const [statusText, setStatusText] = useState("");
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [testingId, setTestingId] = useState(initialAutomations[0]?.id || "");
   const [testRecipient, setTestRecipient] = useState("");
   const [testContactName, setTestContactName] = useState("Cliente teste");
+
+  const selectedAutomation = useMemo(
+    () => automations.find((item) => item.id === testingId) || null,
+    [automations, testingId]
+  );
+
+  const selectedAutomationDetails = useMemo(
+    () => (selectedAutomation ? decodeAutomation(selectedAutomation) : null),
+    [selectedAutomation]
+  );
 
   const summary = useMemo(
     () => [
@@ -82,6 +154,18 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
     ],
     [actionType, channel, delayMinutes, keyword, secondMessage, triggerType]
   );
+
+  function applyTemplate(template: Template) {
+    setName(template.name);
+    setChannel(template.channel);
+    setTriggerType(template.triggerType);
+    setKeyword(template.keyword);
+    setActionType(template.actionType);
+    setMessage(template.message);
+    setSecondMessage(template.secondMessage);
+    setDelayMinutes(template.delayMinutes);
+    setStatusText(`Template aplicado: ${template.title}.`);
+  }
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -114,7 +198,7 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
 
     setAutomations((current) => [data.automation, ...current]);
     setTestingId(data.automation.id);
-    setStatusText("Fluxo salvo com sucesso.");
+    setStatusText("Fluxo salvo com sucesso e pronto para teste.");
     setSaving(false);
   }
 
@@ -129,7 +213,8 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
       return;
     }
 
-    setStatusText("Testando fluxo...");
+    setTesting(true);
+    setStatusText("Executando teste...");
 
     const response = await fetch("/api/automations/execute", {
       method: "POST",
@@ -138,7 +223,7 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
         automationId: testingId,
         recipient: testRecipient,
         contactName: testContactName,
-        channel
+        channel: selectedAutomation?.channel || channel
       })
     });
 
@@ -146,10 +231,12 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
 
     if (!response.ok) {
       setStatusText(data.error || "Falha ao testar fluxo.");
+      setTesting(false);
       return;
     }
 
     setStatusText(data.preview ? `Teste concluído: ${data.preview}` : "Fluxo executado com sucesso.");
+    setTesting(false);
   }
 
   return (
@@ -159,10 +246,27 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
           <div>
             <strong>Construtor de fluxos</strong>
             <p className="mini" style={{ marginTop: 8 }}>
-              Monte a lógica principal da conversa, defina a resposta inicial e prepare o próximo passo do atendimento.
+              Crie um fluxo rápido, reutilize templates e teste tudo sem sair do painel.
             </p>
           </div>
           <span className="pricing-badge pricing-badge-featured">builder</span>
+        </div>
+
+        <div className="builder-block">
+          <div className="builder-block-title">Comece mais rápido</div>
+          <div className="builder-template-grid" style={{ marginTop: 16 }}>
+            {templates.map((template) => (
+              <button
+                className="builder-template"
+                key={template.id}
+                onClick={() => applyTemplate(template)}
+                type="button"
+              >
+                <strong>{template.title}</strong>
+                <span className="mini">{template.subtitle}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="builder-block">
@@ -260,8 +364,8 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
           <button className="btn btn-primary" disabled={saving} type="submit">
             {saving ? "Salvando..." : "Salvar fluxo"}
           </button>
-          <button className="btn btn-secondary" onClick={handleTest} type="button">
-            Testar fluxo
+          <button className="btn btn-secondary" disabled={testing} onClick={handleTest} type="button">
+            {testing ? "Testando..." : "Testar fluxo"}
           </button>
         </div>
       </form>
@@ -295,21 +399,58 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
               onChange={(event) => setTestRecipient(event.target.value)}
             />
           </label>
+
+          {selectedAutomation ? (
+            <div className="builder-selected-flow">
+              <div className="flow-item flow-item-rich">
+                <div>
+                  <strong>{selectedAutomation.name}</strong>
+                  <div className="mini">
+                    {channelLabel(selectedAutomation.channel)} · {selectedAutomation.status}
+                  </div>
+                </div>
+                <span className="tag tag-success">selecionado</span>
+              </div>
+              <div className="builder-selected-meta">
+                <div className="builder-summary-card">
+                  <span className="mini">Gatilho</span>
+                  <strong>{triggerLabel(selectedAutomationDetails?.triggerType || "new_message", selectedAutomationDetails?.keyword || "")}</strong>
+                </div>
+                <div className="builder-summary-card">
+                  <span className="mini">Ação</span>
+                  <strong>{actionLabel(selectedAutomationDetails?.actionType || "reply_same_channel")}</strong>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </section>
 
         <section className="card panel">
-          <strong>Fluxos criados</strong>
+          <div className="flow-item">
+            <strong>Fluxos criados</strong>
+            <span className="mini">{automations.length} no total</span>
+          </div>
           <div className="flow-list" style={{ marginTop: 18 }}>
             {automations.length ? (
-              automations.map((item) => (
-                <div className="flow-item flow-item-rich" key={item.id}>
-                  <div>
-                    <strong>{item.name}</strong>
-                    <div className="mini">{channelLabel(item.channel)} · fluxo ativo na operação</div>
-                  </div>
-                  <span className={item.status === "Ativa" ? "tag tag-success" : "tag tag-warning"}>{item.status}</span>
-                </div>
-              ))
+              automations.map((item) => {
+                const details = decodeAutomation(item);
+                return (
+                  <button
+                    className={`flow-item flow-item-rich flow-item-button${testingId === item.id ? " flow-item-button-active" : ""}`}
+                    key={item.id}
+                    onClick={() => setTestingId(item.id)}
+                    type="button"
+                  >
+                    <div>
+                      <strong>{item.name}</strong>
+                      <div className="mini">
+                        {channelLabel(item.channel)} · {triggerLabel(details.triggerType, details.keyword || "")}
+                      </div>
+                    </div>
+                    <span className={item.status === "Ativa" ? "tag tag-success" : "tag tag-warning"}>{item.status}</span>
+                  </button>
+                );
+              })
             ) : (
               <div className="builder-empty-state">
                 <strong>Nenhum fluxo salvo ainda</strong>
@@ -322,4 +463,3 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
     </div>
   );
 }
-

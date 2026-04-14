@@ -6,14 +6,19 @@ import { ProcessJobsButton } from "@/components/process-jobs-button";
 import { humanizeTrigger } from "@/lib/automation-utils";
 import { requireSession } from "@/lib/auth";
 import { dashboardStats, inbox } from "@/lib/mock-data";
-import { AutomationRecord, ScheduledJobRecord, listAutomations, listScheduledJobs } from "@/lib/repositories";
+import { AutomationRecord, ScheduledJobRecord, getIntegrations, listAutomations, listScheduledJobs } from "@/lib/repositories";
 
 export default async function DashboardPage() {
   const session = await requireSession();
   const automations = await listAutomations(session.id);
   const scheduledJobs = await listScheduledJobs(session.id);
+  const integrations = await getIntegrations(session.tenantId);
   const pendingJobs = (scheduledJobs as ScheduledJobRecord[]).filter((job) => job.status === "pending").length;
   const activeAutomations = (automations as AutomationRecord[]).filter((item) => item.status === "Ativa").length;
+  const integrationsReady = [
+    integrations.whatsapp?.connected,
+    integrations.instagram?.connected
+  ].filter(Boolean).length;
 
   return (
     <AppShell
@@ -62,6 +67,15 @@ export default async function DashboardPage() {
                 </div>
                 <span className="tag tag-warning">fila</span>
               </div>
+              <div className="flow-item flow-item-rich">
+                <div>
+                  <strong>{integrationsReady}/2</strong>
+                  <div className="mini">canais principais conectados</div>
+                </div>
+                <span className={integrationsReady === 2 ? "tag tag-success" : "tag tag-warning"}>
+                  {integrationsReady === 2 ? "pronto" : "ajustar"}
+                </span>
+              </div>
             </div>
           </section>
 
@@ -92,6 +106,43 @@ export default async function DashboardPage() {
                 <AutoProcessJobs />
               </div>
               <ProcessJobsButton />
+            </div>
+          </section>
+
+          <section className="card panel dashboard-side-card">
+            <div className="flow-item">
+              <strong>Próximo passo recomendado</strong>
+              <Link className="mini" href={integrationsReady === 2 ? "/automations" : "/integrations"}>
+                abrir agora
+              </Link>
+            </div>
+            <div className="checklist" style={{ marginTop: 16 }}>
+              <div className="check-item">
+                <span className={integrations.whatsapp?.connected ? "tag tag-success" : "tag tag-warning"}>
+                  {integrations.whatsapp?.connected ? "OK" : "1"}
+                </span>
+                <span className="mini">
+                  {integrations.whatsapp?.connected ? "WhatsApp conectado." : "Conecte o WhatsApp para liberar testes reais."}
+                </span>
+              </div>
+              <div className="check-item">
+                <span className={integrations.instagram?.connected ? "tag tag-success" : "tag tag-warning"}>
+                  {integrations.instagram?.connected ? "OK" : "2"}
+                </span>
+                <span className="mini">
+                  {integrations.instagram?.connected
+                    ? "Instagram conectado."
+                    : "Conecte o Instagram para centralizar DM e comentário."}
+                </span>
+              </div>
+              <div className="check-item">
+                <span className={activeAutomations ? "tag tag-success" : "tag tag-warning"}>{activeAutomations ? "OK" : "3"}</span>
+                <span className="mini">
+                  {activeAutomations
+                    ? "Você já tem fluxo ativo e pode seguir para testes."
+                    : "Crie um fluxo abaixo e faça um teste com seu número."}
+                </span>
+              </div>
             </div>
           </section>
         </div>
