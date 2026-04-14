@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { AppShell } from "@/components/app-shell";
 import { AutoProcessJobs } from "@/components/auto-process-jobs";
 import { FlowBuilder } from "@/components/flow-builder";
@@ -8,175 +8,169 @@ import { requireSession } from "@/lib/auth";
 import { dashboardStats, inbox } from "@/lib/mock-data";
 import { AutomationRecord, ScheduledJobRecord, getIntegrations, listAutomations, listScheduledJobs } from "@/lib/repositories";
 
+function channelState(connected: boolean, label: string) {
+  return {
+    label,
+    status: connected ? "Conectado" : "Pendente",
+    tone: connected ? "tag tag-success" : "tag tag-warning"
+  };
+}
+
 export default async function DashboardPage() {
   const session = await requireSession();
-  const automations = await listAutomations(session.id);
-  const scheduledJobs = await listScheduledJobs(session.id);
+  const automations = (await listAutomations(session.id)) as AutomationRecord[];
+  const scheduledJobs = (await listScheduledJobs(session.id)) as ScheduledJobRecord[];
   const integrations = await getIntegrations(session.tenantId);
-  const pendingJobs = (scheduledJobs as ScheduledJobRecord[]).filter((job) => job.status === "pending").length;
-  const activeAutomations = (automations as AutomationRecord[]).filter((item) => item.status === "Ativa").length;
+
+  const pendingJobs = scheduledJobs.filter((job) => job.status === "pending").length;
+  const activeAutomations = automations.filter((item) => item.status === "Ativa").length;
   const integrationsReady = [
     integrations.whatsapp?.connected,
     integrations.instagram?.connected
   ].filter(Boolean).length;
+  const coverage = Math.round((integrationsReady / 2) * 100);
+  const automationReadiness = automations.length ? Math.round((activeAutomations / automations.length) * 100) : 0;
+
+  const channelStates = [
+    channelState(Boolean(integrations.whatsapp?.connected), "WhatsApp"),
+    channelState(Boolean(integrations.instagram?.connected), "Instagram")
+  ];
+
+  const nextActions = [
+    integrations.whatsapp?.connected
+      ? "WhatsApp validado para testes e produção."
+      : "Conecte o WhatsApp para iniciar testes com número real.",
+    integrations.instagram?.connected
+      ? "Instagram pronto para DM e comentário."
+      : "Conecte o Instagram para centralizar comentários e mensagens.",
+    activeAutomations
+      ? "Fluxos ativos disponíveis para disparo e acompanhamento."
+      : "Crie e publique ao menos um fluxo para ativar a operação."
+  ];
 
   return (
     <AppShell
       userName={session.name}
-      title="Centro operacional da Klio"
-      description="Aqui você cria fluxos, acompanha a fila, monitora conversas e coloca a automação para trabalhar de verdade."
+      title="Overview operacional"
+      description="Monitore saúde dos canais, capacidade do motor, fluxos ativos e fila de atendimento com leitura rápida e contexto real."
     >
-      <section className="dashboard-hero">
-        <div className="card panel dashboard-hero-main">
-          <span className="eyebrow">Operação ao vivo</span>
-          <h2 className="dashboard-panel-title">Tudo o que importa para o time operar em um só lugar.</h2>
-          <p className="muted">
-            Conecte canais, ative fluxos, teste respostas e acompanhe o que está rodando sem pular entre telas.
-          </p>
-          <div className="dashboard-shortcuts">
-            <Link className="workspace-link" href="/integrations">
-              <strong>Conectar canais</strong>
-              <span className="mini">WhatsApp, Instagram e credenciais</span>
-            </Link>
-            <Link className="workspace-link" href="/automations">
-              <strong>Revisar fluxos</strong>
-              <span className="mini">gatilhos, mensagens e status</span>
-            </Link>
-            <Link className="workspace-link" href="/leads">
-              <strong>Ver leads</strong>
-              <span className="mini">origem, etapa e contexto</span>
-            </Link>
+      <section className="command-deck">
+        <div className="command-spotlight">
+          <div className="command-spotlight-head">
+            <div>
+              <span className="workspace-kicker">Mission control</span>
+              <h2>Operação multicanal pronta para rodar com contexto, velocidade e prioridade.</h2>
+            </div>
+            <span className="workspace-chip workspace-chip-live">Online agora</span>
+          </div>
+
+          <div className="command-highlight-grid">
+            <div className="command-highlight-card">
+              <span className="mini">Canais conectados</span>
+              <strong>{coverage}%</strong>
+              <p>{integrationsReady}/2 canais principais já estão liberados para operação.</p>
+            </div>
+            <div className="command-highlight-card">
+              <span className="mini">Fluxos em produção</span>
+              <strong>{activeAutomations}</strong>
+              <p>{automationReadiness}% da biblioteca atual está em estado ativo.</p>
+            </div>
+            <div className="command-highlight-card">
+              <span className="mini">Fila pendente</span>
+              <strong>{pendingJobs}</strong>
+              <p>Etapas aguardando execução automática no worker da Klio.</p>
+            </div>
+          </div>
+
+          <div className="command-lane">
+            <div className="command-lane-step">
+              <span>Entrada</span>
+              <strong>Captura de mensagem</strong>
+            </div>
+            <div className="command-lane-step">
+              <span>Decisão</span>
+              <strong>Resposta e qualificação</strong>
+            </div>
+            <div className="command-lane-step">
+              <span>Entrega</span>
+              <strong>Repasse e acompanhamento</strong>
+            </div>
           </div>
         </div>
 
-        <div className="dashboard-side-stack">
-          <section className="card panel dashboard-side-card">
-            <strong>Resumo da operação</strong>
-            <div className="dashboard-side-list" style={{ marginTop: 16 }}>
-              <div className="flow-item flow-item-rich">
-                <div>
-                  <strong>{activeAutomations}</strong>
-                  <div className="mini">fluxos ativos</div>
+        <div className="command-side">
+          <section className="command-panel">
+            <div className="command-panel-head">
+              <strong>Saúde dos canais</strong>
+              <Link href="/integrations">Abrir integrações</Link>
+            </div>
+            <div className="command-status-list">
+              {channelStates.map((item) => (
+                <div className="command-status-row" key={item.label}>
+                  <div>
+                    <span className="mini">{item.label}</span>
+                    <strong>{item.status}</strong>
+                  </div>
+                  <span className={item.tone}>{item.status}</span>
                 </div>
-                <span className="tag tag-success">rodando</span>
-              </div>
-              <div className="flow-item flow-item-rich">
-                <div>
-                  <strong>{pendingJobs}</strong>
-                  <div className="mini">etapas agendadas</div>
-                </div>
-                <span className="tag tag-warning">fila</span>
-              </div>
-              <div className="flow-item flow-item-rich">
-                <div>
-                  <strong>{integrationsReady}/2</strong>
-                  <div className="mini">canais principais conectados</div>
-                </div>
-                <span className={integrationsReady === 2 ? "tag tag-success" : "tag tag-warning"}>
-                  {integrationsReady === 2 ? "pronto" : "ajustar"}
-                </span>
-              </div>
+              ))}
             </div>
           </section>
 
-          <section className="card panel orchestration-panel">
-            <div className="orchestration-header">
-              <div>
-                <strong>Engine de execução</strong>
-                <div className="mini">Fila, worker e disparos em andamento</div>
-              </div>
-              <span className="pricing-badge">worker ativo</span>
+          <section className="command-panel">
+            <div className="command-panel-head">
+              <strong>Próximos passos</strong>
+              <Link href={integrationsReady === 2 ? "/automations" : "/integrations"}>Abrir área</Link>
             </div>
-            <div className="orchestration-lane" style={{ marginTop: 18 }}>
-              <div className="orchestration-step">
-                <span className="mini">01</span>
-                <strong>Entrada</strong>
-              </div>
-              <div className="orchestration-step">
-                <span className="mini">02</span>
-                <strong>Resposta</strong>
-              </div>
-              <div className="orchestration-step">
-                <span className="mini">03</span>
-                <strong>Repasse</strong>
-              </div>
+            <div className="command-action-list">
+              {nextActions.map((item) => (
+                <div className="command-action-item" key={item}>
+                  <span className="command-action-dot" />
+                  <span>{item}</span>
+                </div>
+              ))}
             </div>
-            <div style={{ marginTop: 18 }}>
-              <div style={{ marginBottom: 16 }}>
-                <AutoProcessJobs />
-              </div>
+          </section>
+
+          <section className="command-panel command-panel-compact">
+            <div className="command-panel-head">
+              <strong>Execução automática</strong>
+              <span className="workspace-chip">Worker</span>
+            </div>
+            <div className="command-worker-stack">
+              <AutoProcessJobs />
               <ProcessJobsButton />
-            </div>
-          </section>
-
-          <section className="card panel dashboard-side-card">
-            <div className="flow-item">
-              <strong>Próximo passo recomendado</strong>
-              <Link className="mini" href={integrationsReady === 2 ? "/automations" : "/integrations"}>
-                abrir agora
-              </Link>
-            </div>
-            <div className="checklist" style={{ marginTop: 16 }}>
-              <div className="check-item">
-                <span className={integrations.whatsapp?.connected ? "tag tag-success" : "tag tag-warning"}>
-                  {integrations.whatsapp?.connected ? "OK" : "1"}
-                </span>
-                <span className="mini">
-                  {integrations.whatsapp?.connected ? "WhatsApp conectado." : "Conecte o WhatsApp para liberar testes reais."}
-                </span>
-              </div>
-              <div className="check-item">
-                <span className={integrations.instagram?.connected ? "tag tag-success" : "tag tag-warning"}>
-                  {integrations.instagram?.connected ? "OK" : "2"}
-                </span>
-                <span className="mini">
-                  {integrations.instagram?.connected
-                    ? "Instagram conectado."
-                    : "Conecte o Instagram para centralizar DM e comentário."}
-                </span>
-              </div>
-              <div className="check-item">
-                <span className={activeAutomations ? "tag tag-success" : "tag tag-warning"}>{activeAutomations ? "OK" : "3"}</span>
-                <span className="mini">
-                  {activeAutomations
-                    ? "Você já tem fluxo ativo e pode seguir para testes."
-                    : "Crie um fluxo abaixo e faça um teste com seu número."}
-                </span>
-              </div>
             </div>
           </section>
         </div>
       </section>
 
-      <div className="kpi-grid" style={{ marginTop: 24 }}>
+      <section className="overview-strip">
         {dashboardStats.map((item) => (
-          <div className="kpi" key={item.label}>
-            <span className="mini">{item.label}</span>
+          <article className="overview-stat" key={item.label}>
+            <span>{item.label}</span>
             <strong>{item.value}</strong>
-            <span className="mini">{item.trend}</span>
-          </div>
+            <p>{item.trend}</p>
+          </article>
         ))}
-        <div className="kpi">
-          <span className="mini">Etapas agendadas</span>
-          <strong>{pendingJobs}</strong>
-          <span className="mini">pendências na fila</span>
-        </div>
-      </div>
+      </section>
 
-      <div className="dashboard-main-grid">
-        <FlowBuilder initialAutomations={automations as never[]} />
+      <section className="dashboard-workbench">
+        <FlowBuilder initialAutomations={automations} />
 
-        <div className="flow-list">
-          <section className="card panel">
-            <strong>Inbox operacional</strong>
-            <div className="inbox-list" style={{ marginTop: 18 }}>
+        <div className="dashboard-rail">
+          <section className="command-panel">
+            <div className="command-panel-head">
+              <strong>Inbox operacional</strong>
+              <Link href="/leads">Ver fila completa</Link>
+            </div>
+            <div className="live-feed-list">
               {inbox.map((item) => (
-                <div className="inbox-item" key={item.id}>
+                <div className="live-feed-item" key={item.id}>
                   <div>
-                    <div>
-                      <strong>{item.contact}</strong> <span className="mini">via {item.origin}</span>
-                    </div>
-                    <div className="muted">{item.text}</div>
+                    <strong>{item.contact}</strong>
+                    <div className="mini">{item.origin}</div>
+                    <p>{item.text}</p>
                   </div>
                   <span className={item.status === "Novo" ? "tag tag-success" : "tag tag-warning"}>{item.status}</span>
                 </div>
@@ -184,20 +178,19 @@ export default async function DashboardPage() {
             </div>
           </section>
 
-          <section className="card panel">
-            <div className="flow-item">
+          <section className="command-panel">
+            <div className="command-panel-head">
               <strong>Fluxos ativos agora</strong>
-              <Link className="mini" href="/automations">
-                abrir biblioteca
-              </Link>
+              <Link href="/automations">Abrir biblioteca</Link>
             </div>
-            <div className="flow-list" style={{ marginTop: 18 }}>
-              {(automations as AutomationRecord[]).length ? (
-                (automations as AutomationRecord[]).map((item) => (
-                  <div className="flow-item flow-item-rich" key={item.id}>
+            <div className="command-status-list">
+              {automations.length ? (
+                automations.map((item) => (
+                  <div className="command-status-row" key={item.id}>
                     <div>
+                      <span className="mini">{item.channel}</span>
                       <strong>{item.name}</strong>
-                      <div className="mini">{humanizeTrigger(item.trigger)}</div>
+                      <p>{humanizeTrigger(item.trigger)}</p>
                     </div>
                     <span className={item.status === "Ativa" ? "tag tag-success" : "tag tag-warning"}>{item.status}</span>
                   </div>
@@ -205,14 +198,13 @@ export default async function DashboardPage() {
               ) : (
                 <div className="builder-empty-state">
                   <strong>Nenhum fluxo ativo</strong>
-                  <p className="mini">Crie o primeiro fluxo ao lado para começar a operação.</p>
+                  <p className="mini">Publique seu primeiro fluxo para começar a operação com automação real.</p>
                 </div>
               )}
             </div>
           </section>
         </div>
-      </div>
+      </section>
     </AppShell>
   );
 }
-

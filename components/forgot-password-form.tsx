@@ -1,6 +1,25 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useState } from "react";
+
+function MailIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none">
+      <path d="M3.75 5.625h12.5v8.75H3.75z" stroke="currentColor" strokeWidth="1.6" rx="2" />
+      <path d="m4.375 6.25 5.625 4.375 5.625-4.375" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function SuccessIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none">
+      <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M6.5 10.1 8.85 12.45 13.6 7.7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -19,47 +38,49 @@ export function ForgotPasswordForm() {
 
   if (success) {
     return (
-      <div className="space-y-5 text-center">
-        <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-500/15 text-2xl text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.2)] animate-[badgePulse_2.6s_ease-in-out_infinite]">
-          ✓
+      <div className="auth-success-state">
+        <div className="auth-success-icon" aria-hidden="true">
+          <SuccessIcon />
         </div>
         <div>
-          <strong className="block text-lg text-white">E-mail enviado!</strong>
-          <p className="mt-2 text-sm text-slate-400">Verifique sua caixa de entrada.</p>
+          <strong>E-mail enviado!</strong>
+          <p>Verifique sua caixa de entrada e siga as instruções para recuperar o acesso.</p>
         </div>
-        <a className="inline-flex text-sm text-violet-400 transition hover:text-violet-300" href="/login">
+        <Link href="/login" className="auth-inline-link">
           Voltar para o login
-        </a>
+        </Link>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <label className="block">
-        <span className="mb-2 block text-sm font-medium text-slate-200">Email</span>
-        <input
-          className="h-11 w-full rounded-lg border border-slate-700 bg-slate-950 px-4 text-white outline-none transition focus:border-violet-500"
-          placeholder="voce@empresa.com"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-        />
+    <form onSubmit={handleSubmit} className="auth-form-stack">
+      <label className="auth-field">
+        <span className="auth-label">Email</span>
+        <div className="auth-input-shell">
+          <span className="auth-input-icon" aria-hidden="true">
+            <MailIcon />
+          </span>
+          <input
+            className="auth-input"
+            placeholder="voce@empresa.com"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            autoComplete="email"
+            required
+          />
+        </div>
       </label>
 
-      <button
-        className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-violet-600 font-medium text-white transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-70"
-        disabled={loading}
-        type="submit"
-      >
+      <button className="auth-submit-button" disabled={loading} type="submit">
         {loading ? <span className="spinner" aria-hidden="true" /> : null}
         {loading ? "Enviando..." : "Enviar instruções"}
       </button>
 
-      <div className="text-center">
-        <a className="text-sm text-violet-400 transition hover:text-violet-300" href="/login">
+      <div className="auth-inline-center">
+        <Link href="/login" className="auth-inline-link">
           Voltar para o login
-        </a>
+        </Link>
       </div>
     </form>
   );
