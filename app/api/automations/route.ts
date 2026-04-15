@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
-import { encodeTrigger } from "@/lib/automation-utils";
+import { AutomationDetails, VisualAutomationTrigger, encodeTrigger } from "@/lib/automation-utils";
 import { AutomationRecord, createAutomation, listAutomations } from "@/lib/repositories";
 
 export async function GET() {
@@ -17,19 +17,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Sessão inválida." }, { status: 401 });
   }
 
+  const legacyFallback: AutomationDetails = {
+    triggerType: body.triggerType ?? "keyword",
+    keyword: body.keyword ?? "",
+    actionType: body.actionType ?? "reply_same_channel",
+    secondMessage: body.secondMessage ?? "",
+    delayMinutes: Number(body.delayMinutes ?? 0)
+  };
+  const visualCanvas = body.canvas as VisualAutomationTrigger | undefined;
+
   const automation: AutomationRecord = {
     id: `automation_${Date.now()}`,
     tenantId: session.tenantId,
     userId: session.id,
     name: body.name,
     channel: body.channel,
-    trigger: encodeTrigger({
-      triggerType: body.triggerType ?? "keyword",
-      keyword: body.keyword ?? "",
-      actionType: body.actionType ?? "reply_same_channel",
-      secondMessage: body.secondMessage ?? "",
-      delayMinutes: Number(body.delayMinutes ?? 0)
-    }),
+    trigger: encodeTrigger(visualCanvas?.version === 2 ? { ...visualCanvas, legacyFallback } : legacyFallback),
     status: body.status ?? "Rascunho",
     message: body.message
   };

@@ -1,7 +1,30 @@
 "use client";
 
+import {
+  Background,
+  Controls,
+  Handle,
+  MiniMap,
+  Position,
+  ReactFlow,
+  addEdge,
+  useEdgesState,
+  useNodesState,
+  type Connection,
+  type Edge,
+  type Node,
+  type NodeProps
+} from "@xyflow/react";
 import { FormEvent, useMemo, useState } from "react";
-import { decodeTrigger } from "@/lib/automation-utils";
+import {
+  AutomationDetails,
+  FlowCanvasEdge,
+  FlowCanvasNode,
+  FlowCanvasNodeType,
+  VisualAutomationTrigger,
+  decodeTrigger,
+  decodeVisualTrigger
+} from "@/lib/automation-utils";
 
 type AutomationItem = {
   id: string;
@@ -16,141 +39,477 @@ type FlowBuilderProps = {
   initialAutomations: AutomationItem[];
 };
 
+type FlowNodeData = {
+  label: string;
+  channel?: string;
+  triggerType?: AutomationDetails["triggerType"];
+  keyword?: string;
+  message?: string;
+  delayMinutes?: number;
+  condition?: string;
+  actionType?: AutomationDetails["actionType"];
+};
+
+type StudioNode = Node<FlowNodeData, FlowCanvasNodeType>;
+type StudioEdge = Edge<{ label?: string }>;
+
 type Template = {
   id: string;
   title: string;
   subtitle: string;
-  useCase: string;
-  name: string;
-  channel: string;
-  triggerType: string;
-  keyword: string;
-  actionType: string;
-  message: string;
-  secondMessage: string;
-  delayMinutes: string;
+  nodes: StudioNode[];
+  edges: StudioEdge[];
 };
+
+const channelOptions = [
+  { id: "instagram", label: "Instagram" },
+  { id: "whatsapp", label: "WhatsApp" },
+  { id: "messenger", label: "Messenger" },
+  { id: "telegram", label: "Telegram" },
+  { id: "multi", label: "Multicanal" }
+];
+
+const triggerOptions = [
+  { id: "keyword", label: "Palavra-chave" },
+  { id: "new_message", label: "Nova mensagem" }
+];
+
+const actionOptions = [
+  { id: "reply_same_channel", label: "Responder no canal" },
+  { id: "handoff_whatsapp", label: "Levar para WhatsApp" },
+  { id: "notify_team", label: "Avisar equipe" }
+];
+
+const nodeTypeMeta: Record<FlowCanvasNodeType, { label: string; icon: string; tone: string }> = {
+  entry: { label: "Entrada", icon: "IN", tone: "entry" },
+  message: { label: "Mensagem", icon: "MSG", tone: "message" },
+  wait: { label: "Espera", icon: "WAIT", tone: "wait" },
+  condition: { label: "Condição", icon: "IF", tone: "condition" },
+  action: { label: "Ação", icon: "GO", tone: "action" }
+};
+
+function channelLabel(channel?: string) {
+  return channelOptions.find((item) => item.id === channel)?.label || "Multicanal";
+}
+
+function triggerLabel(triggerType?: string, keyword?: string) {
+  if (triggerType === "new_message") {
+    return "Nova mensagem recebida";
+  }
+
+  return keyword ? `Palavra-chave "${keyword}"` : "Palavra-chave";
+}
+
+function actionLabel(actionType?: string) {
+  return actionOptions.find((item) => item.id === actionType)?.label || "Responder no canal";
+}
+
+function createEdge(source: string, target: string, label?: string): StudioEdge {
+  return {
+    id: `${source}-${target}`,
+    source,
+    target,
+    label,
+    type: "smoothstep",
+    animated: true,
+    className: "flow-studio-edge"
+  };
+}
+
+function node(id: string, type: FlowCanvasNodeType, x: number, y: number, data: FlowNodeData): StudioNode {
+  return {
+    id,
+    type,
+    position: { x, y },
+    data,
+    className: `flow-studio-node-shell flow-studio-node-${type}`
+  };
+}
 
 const templates: Template[] = [
   {
     id: "lead",
-    title: "Capturar lead",
-    subtitle: "Comentário ou DM vira conversa qualificada.",
-    useCase: "Vendas",
-    name: "Qualificação automática de lead",
-    channel: "instagram",
-    triggerType: "keyword",
-    keyword: "quero",
-    actionType: "handoff_whatsapp",
-    message: "Oi, vi seu interesse e posso te ajudar por aqui. Me conte rapidamente o que você quer automatizar primeiro.",
-    secondMessage: "Perfeito. Agora vou te encaminhar para um especialista com todo o contexto da conversa.",
-    delayMinutes: "10"
+    title: "Instagram para WhatsApp",
+    subtitle: "Comentário vira DM, qualificação e repasse para fechamento.",
+    nodes: [
+      node("entry-1", "entry", 0, 80, {
+        label: "Comentário no Instagram",
+        channel: "instagram",
+        triggerType: "keyword",
+        keyword: "quero"
+      }),
+      node("message-1", "message", 310, 40, {
+        label: "Resposta de qualificação",
+        message: "Oi, vi seu interesse e posso te ajudar por aqui. Me conte rapidamente o que você quer automatizar primeiro."
+      }),
+      node("wait-1", "wait", 620, 80, {
+        label: "Aguardar contexto",
+        delayMinutes: 10
+      }),
+      node("action-1", "action", 920, 40, {
+        label: "Enviar para WhatsApp",
+        actionType: "handoff_whatsapp",
+        message: "Perfeito. Agora vou te encaminhar para um especialista com todo o contexto da conversa."
+      })
+    ],
+    edges: [createEdge("entry-1", "message-1"), createEdge("message-1", "wait-1"), createEdge("wait-1", "action-1")]
   },
   {
     id: "support",
     title: "Atendimento inicial",
-    subtitle: "Responde a primeira mensagem e organiza o pedido.",
-    useCase: "Suporte",
-    name: "Primeira resposta automática",
-    channel: "whatsapp",
-    triggerType: "new_message",
-    keyword: "",
-    actionType: "reply_same_channel",
-    message: "Olá. Recebi sua mensagem e já vou te ajudar. Me diga em uma frase o que você precisa agora.",
-    secondMessage: "Se preferir, também posso repassar seu atendimento para uma pessoa da equipe.",
-    delayMinutes: "5"
+    subtitle: "Primeira resposta automática e organização do pedido.",
+    nodes: [
+      node("entry-1", "entry", 0, 80, {
+        label: "Nova mensagem",
+        channel: "whatsapp",
+        triggerType: "new_message",
+        keyword: ""
+      }),
+      node("message-1", "message", 310, 80, {
+        label: "Boas-vindas",
+        message: "Olá. Recebi sua mensagem e já vou te ajudar. Me diga em uma frase o que você precisa agora."
+      }),
+      node("action-1", "action", 620, 80, {
+        label: "Responder no canal",
+        actionType: "reply_same_channel",
+        message: "Se preferir, também posso repassar seu atendimento para uma pessoa da equipe."
+      })
+    ],
+    edges: [createEdge("entry-1", "message-1"), createEdge("message-1", "action-1")]
   },
   {
-    id: "alerts",
+    id: "team-alert",
     title: "Avisar equipe",
-    subtitle: "Quando surgir oportunidade, o time recebe contexto.",
-    useCase: "Operação",
-    name: "Alerta interno de oportunidade",
-    channel: "multi",
-    triggerType: "keyword",
-    keyword: "orçamento",
-    actionType: "notify_team",
-    message: "Recebi seu pedido e a equipe já foi avisada para continuar o atendimento.",
-    secondMessage: "",
-    delayMinutes: "0"
+    subtitle: "Quando aparecer oportunidade, a equipe recebe contexto.",
+    nodes: [
+      node("entry-1", "entry", 0, 80, {
+        label: "Pedido de orçamento",
+        channel: "multi",
+        triggerType: "keyword",
+        keyword: "orçamento"
+      }),
+      node("condition-1", "condition", 310, 80, {
+        label: "Contém intenção",
+        condition: "orçamento, preço, proposta"
+      }),
+      node("message-1", "message", 620, 40, {
+        label: "Confirmação ao cliente",
+        message: "Recebi seu pedido e a equipe já foi avisada para continuar o atendimento."
+      }),
+      node("action-1", "action", 920, 80, {
+        label: "Notificar equipe",
+        actionType: "notify_team"
+      })
+    ],
+    edges: [
+      createEdge("entry-1", "condition-1"),
+      createEdge("condition-1", "message-1", "sim"),
+      createEdge("message-1", "action-1")
+    ]
   }
 ];
 
-const channelOptions = [
-  { id: "instagram", label: "Instagram", description: "DM, comentário e lead social" },
-  { id: "whatsapp", label: "WhatsApp", description: "Atendimento e fechamento" },
-  { id: "messenger", label: "Messenger", description: "Caixa de entrada Meta" },
-  { id: "telegram", label: "Telegram", description: "Comunidades e suporte" },
-  { id: "multi", label: "Multicanal", description: "Usar em qualquer canal" }
-];
-
-const triggerOptions = [
-  { id: "keyword", label: "Palavra-chave", description: "Quando o cliente escreve um termo" },
-  { id: "new_message", label: "Nova mensagem", description: "Sempre que uma conversa entrar" }
-];
-
-const actionOptions = [
-  { id: "reply_same_channel", label: "Responder no canal", description: "A Klio responde onde o cliente chamou" },
-  { id: "handoff_whatsapp", label: "Levar para WhatsApp", description: "Conduz o lead para o fechamento" },
-  { id: "notify_team", label: "Avisar equipe", description: "Cria uma tarefa interna para o time" }
-];
-
-function channelLabel(channel: string) {
-  return channelOptions.find((item) => item.id === channel)?.label || channel;
+function cloneTemplate(template: Template) {
+  return {
+    nodes: template.nodes.map((item) => ({ ...item, data: { ...item.data }, position: { ...item.position } })),
+    edges: template.edges.map((item) => ({ ...item, data: item.data ? { ...item.data } : undefined }))
+  };
 }
 
-function triggerLabel(triggerType: string, keyword: string) {
-  if (triggerType === "keyword") {
-    return keyword ? `Palavra-chave "${keyword}"` : "Palavra-chave a definir";
+function getLinearPath(nodes: StudioNode[], edges: StudioEdge[]) {
+  const entry = nodes.find((item) => item.type === "entry");
+  if (!entry) return [];
+
+  const path = [entry.id];
+  const visited = new Set(path);
+  let current = entry.id;
+
+  while (true) {
+    const nextEdge = edges.find((edge) => edge.source === current && !visited.has(edge.target));
+    if (!nextEdge) break;
+    path.push(nextEdge.target);
+    visited.add(nextEdge.target);
+    current = nextEdge.target;
   }
 
-  return "Nova mensagem recebida";
+  return path;
 }
 
-function actionLabel(actionType: string) {
-  return actionOptions.find((item) => item.id === actionType)?.label || actionType;
+function getFallback(nodes: StudioNode[], edges: StudioEdge[]): AutomationDetails {
+  const path = getLinearPath(nodes, edges);
+  const orderedNodes = path.map((id) => nodes.find((item) => item.id === id)).filter((item): item is StudioNode => Boolean(item));
+  const entry = orderedNodes.find((item) => item.type === "entry") || nodes.find((item) => item.type === "entry");
+  const action = [...orderedNodes].reverse().find((item) => item.type === "action") || nodes.find((item) => item.type === "action");
+  const wait = orderedNodes.find((item) => item.type === "wait") || nodes.find((item) => item.type === "wait");
+
+  return {
+    triggerType: entry?.data.triggerType === "new_message" ? "new_message" : "keyword",
+    keyword: entry?.data.keyword || "",
+    actionType: action?.data.actionType || "reply_same_channel",
+    secondMessage: typeof action?.data.message === "string" ? action.data.message : "",
+    delayMinutes: Number(wait?.data.delayMinutes || 0)
+  };
 }
 
-function decodeAutomation(item: AutomationItem) {
-  return decodeTrigger(item.trigger);
+function validateFlow(nodes: StudioNode[], edges: StudioEdge[]) {
+  const issues: string[] = [];
+  const entry = nodes.find((item) => item.type === "entry");
+  const message = nodes.find((item) => item.type === "message" && String(item.data.message || "").trim());
+  const path = getLinearPath(nodes, edges);
+
+  if (!entry) issues.push("Adicione um bloco de entrada.");
+  if (!message) issues.push("Adicione pelo menos uma mensagem com texto.");
+  if (entry && path.length < 2) issues.push("Conecte a entrada ao próximo bloco.");
+  if (entry && message && !path.includes(message.id)) issues.push("A mensagem precisa estar conectada ao caminho principal.");
+
+  return { issues, valid: issues.length === 0, path };
 }
 
-function OptionButton({
-  active,
-  title,
-  description,
-  onClick
-}: {
-  active: boolean;
-  title: string;
-  description: string;
-  onClick: () => void;
-}) {
+function toCanvasTrigger(nodes: StudioNode[], edges: StudioEdge[]): VisualAutomationTrigger {
+  const fallback = getFallback(nodes, edges);
+  const linearPath = getLinearPath(nodes, edges);
+  const entry = nodes.find((item) => item.type === "entry");
+
+  return {
+    version: 2,
+    nodes: nodes.map((item): FlowCanvasNode => ({
+      id: item.id,
+      type: item.type || "message",
+      position: item.position,
+      data: {
+        label: item.data.label,
+        channel: item.data.channel,
+        triggerType: item.data.triggerType,
+        keyword: item.data.keyword,
+        message: item.data.message,
+        delayMinutes: item.data.delayMinutes,
+        condition: item.data.condition,
+        actionType: item.data.actionType
+      }
+    })),
+    edges: edges.map((item): FlowCanvasEdge => ({
+      id: item.id,
+      source: item.source,
+      target: item.target,
+      label: typeof item.label === "string" ? item.label : undefined
+    })),
+    entryNodeId: entry?.id || linearPath[0] || "",
+    linearPath,
+    legacyFallback: fallback
+  };
+}
+
+function fromVisualTrigger(trigger: VisualAutomationTrigger) {
+  return {
+    nodes: trigger.nodes.map((item): StudioNode => ({
+      id: item.id,
+      type: item.type,
+      position: item.position,
+      data: item.data,
+      className: `flow-studio-node-shell flow-studio-node-${item.type}`
+    })),
+    edges: trigger.edges.map((item): StudioEdge => ({
+      id: item.id,
+      source: item.source,
+      target: item.target,
+      label: item.label,
+      type: "smoothstep",
+      animated: true,
+      className: "flow-studio-edge"
+    }))
+  };
+}
+
+function getPrimaryMessage(nodes: StudioNode[], edges: StudioEdge[]) {
+  const path = getLinearPath(nodes, edges);
+  const messageNode = path
+    .map((id) => nodes.find((item) => item.id === id))
+    .find((item) => item?.type === "message");
+
+  return String(messageNode?.data.message || "Mensagem automática da Klio.");
+}
+
+function nodeSummary(nodeItem: Pick<StudioNode, "type" | "data">) {
+  if (nodeItem.type === "entry") return `${channelLabel(nodeItem.data.channel)} · ${triggerLabel(nodeItem.data.triggerType, nodeItem.data.keyword)}`;
+  if (nodeItem.type === "message") return String(nodeItem.data.message || "Mensagem sem texto");
+  if (nodeItem.type === "wait") return `${nodeItem.data.delayMinutes || 0} min antes da próxima etapa`;
+  if (nodeItem.type === "condition") return `Se contém: ${nodeItem.data.condition || "termo"}`;
+  return actionLabel(nodeItem.data.actionType);
+}
+
+function FlowNodeCard(props: NodeProps<StudioNode>) {
+  const meta = nodeTypeMeta[props.type || "message"];
+
   return (
-    <button className={`flow-option${active ? " flow-option-active" : ""}`} type="button" onClick={onClick}>
-      <span className="flow-option-dot" />
-      <strong>{title}</strong>
-      <span>{description}</span>
-    </button>
+    <div className={`flow-node-card flow-node-card-${meta.tone}${props.selected ? " flow-node-card-selected" : ""}`}>
+      <Handle type="target" position={Position.Left} className="flow-node-handle" />
+      <div className="flow-node-card-head">
+        <span>{meta.icon}</span>
+        <div>
+          <strong>{props.data.label}</strong>
+          <small>{meta.label}</small>
+        </div>
+      </div>
+      <p>{nodeSummary({ type: props.type || "message", data: props.data })}</p>
+      <Handle type="source" position={Position.Right} className="flow-node-handle" />
+    </div>
+  );
+}
+
+const nodeTypes = {
+  entry: FlowNodeCard,
+  message: FlowNodeCard,
+  wait: FlowNodeCard,
+  condition: FlowNodeCard,
+  action: FlowNodeCard
+};
+
+function FlowToolbar({ onAdd }: { onAdd: (type: FlowCanvasNodeType) => void }) {
+  const items: FlowCanvasNodeType[] = ["entry", "message", "wait", "condition", "action"];
+
+  return (
+    <div className="flow-canvas-toolbar">
+      {items.map((item) => (
+        <button key={item} type="button" onClick={() => onAdd(item)}>
+          <span>{nodeTypeMeta[item].icon}</span>
+          {nodeTypeMeta[item].label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function FlowValidationPanel({ issues, valid }: { issues: string[]; valid: boolean }) {
+  return (
+    <div className={`flow-validation-panel${valid ? " flow-validation-panel-ok" : ""}`}>
+      <strong>{valid ? "Fluxo pronto para publicar" : "Ajustes necessários"}</strong>
+      {valid ? (
+        <p>Entrada, mensagem e caminho principal estão conectados.</p>
+      ) : (
+        <ul>
+          {issues.map((issue) => (
+            <li key={issue}>{issue}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function NodeInspector({
+  nodeItem,
+  onUpdate
+}: {
+  nodeItem: StudioNode | null;
+  onUpdate: (id: string, data: Partial<FlowNodeData>) => void;
+}) {
+  if (!nodeItem) {
+    return (
+      <section className="flow-inspector-panel">
+        <span className="workspace-kicker">Inspector</span>
+        <h3>Selecione um bloco</h3>
+        <p className="mini">Clique em qualquer bloco no canvas para editar canal, texto, condição ou ação.</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="flow-inspector-panel">
+      <span className="workspace-kicker">{nodeTypeMeta[nodeItem.type || "message"].label}</span>
+      <label className="flow-field">
+        <span>Nome do bloco</span>
+        <input className="input" value={nodeItem.data.label} onChange={(event) => onUpdate(nodeItem.id, { label: event.target.value })} />
+      </label>
+
+      {nodeItem.type === "entry" ? (
+        <>
+          <label className="flow-field">
+            <span>Canal</span>
+            <select className="select" value={nodeItem.data.channel || "instagram"} onChange={(event) => onUpdate(nodeItem.id, { channel: event.target.value })}>
+              {channelOptions.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flow-field">
+            <span>Gatilho</span>
+            <select
+              className="select"
+              value={nodeItem.data.triggerType || "keyword"}
+              onChange={(event) => onUpdate(nodeItem.id, { triggerType: event.target.value as AutomationDetails["triggerType"] })}
+            >
+              {triggerOptions.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flow-field">
+            <span>Palavra-chave</span>
+            <input className="input" value={nodeItem.data.keyword || ""} onChange={(event) => onUpdate(nodeItem.id, { keyword: event.target.value })} />
+          </label>
+        </>
+      ) : null}
+
+      {nodeItem.type === "message" ? (
+        <label className="flow-field">
+          <span>Mensagem enviada pela Klio</span>
+          <textarea className="textarea flow-message-box" value={nodeItem.data.message || ""} onChange={(event) => onUpdate(nodeItem.id, { message: event.target.value })} />
+        </label>
+      ) : null}
+
+      {nodeItem.type === "wait" ? (
+        <label className="flow-field">
+          <span>Tempo de espera em minutos</span>
+          <input className="input" inputMode="numeric" value={nodeItem.data.delayMinutes || 0} onChange={(event) => onUpdate(nodeItem.id, { delayMinutes: Number(event.target.value || 0) })} />
+        </label>
+      ) : null}
+
+      {nodeItem.type === "condition" ? (
+        <label className="flow-field">
+          <span>Condição simples</span>
+          <input className="input" value={nodeItem.data.condition || ""} onChange={(event) => onUpdate(nodeItem.id, { condition: event.target.value })} />
+        </label>
+      ) : null}
+
+      {nodeItem.type === "action" ? (
+        <>
+          <label className="flow-field">
+            <span>Ação final</span>
+            <select
+              className="select"
+              value={nodeItem.data.actionType || "reply_same_channel"}
+              onChange={(event) => onUpdate(nodeItem.id, { actionType: event.target.value as AutomationDetails["actionType"] })}
+            >
+              {actionOptions.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flow-field">
+            <span>Mensagem de continuação</span>
+            <textarea className="textarea flow-message-box-small" value={nodeItem.data.message || ""} onChange={(event) => onUpdate(nodeItem.id, { message: event.target.value })} />
+          </label>
+        </>
+      ) : null}
+    </section>
   );
 }
 
 export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
+  const initialTemplate = cloneTemplate(templates[0]);
   const [automations, setAutomations] = useState(initialAutomations);
+  const [nodes, setNodes, onNodesChange] = useNodesState<StudioNode>(initialTemplate.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<StudioEdge>(initialTemplate.edges);
   const [name, setName] = useState("Qualificação automática de lead");
-  const [channel, setChannel] = useState("instagram");
-  const [triggerType, setTriggerType] = useState("keyword");
-  const [keyword, setKeyword] = useState("quero");
-  const [actionType, setActionType] = useState("handoff_whatsapp");
-  const [message, setMessage] = useState(
-    "Oi, vi seu interesse e posso te ajudar por aqui. Me conte rapidamente o que você quer automatizar primeiro."
-  );
-  const [secondMessage, setSecondMessage] = useState(
-    "Perfeito. Se fizer sentido, também posso encaminhar você para um especialista com todo o contexto da conversa."
-  );
-  const [delayMinutes, setDelayMinutes] = useState("10");
   const [status, setStatus] = useState("Ativa");
   const [activeTemplate, setActiveTemplate] = useState("lead");
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(nodes[0]?.id || null);
   const [statusText, setStatusText] = useState("");
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -158,72 +517,84 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
   const [testRecipient, setTestRecipient] = useState("");
   const [testContactName, setTestContactName] = useState("Cliente teste");
 
-  const selectedAutomation = useMemo(
-    () => automations.find((item) => item.id === testingId) || null,
-    [automations, testingId]
-  );
+  const selectedNode = useMemo(() => nodes.find((item) => item.id === selectedNodeId) || null, [nodes, selectedNodeId]);
+  const validation = useMemo(() => validateFlow(nodes, edges), [edges, nodes]);
+  const fallback = useMemo(() => getFallback(nodes, edges), [edges, nodes]);
+  const primaryMessage = useMemo(() => getPrimaryMessage(nodes, edges), [edges, nodes]);
+  const selectedAutomation = useMemo(() => automations.find((item) => item.id === testingId) || null, [automations, testingId]);
+  const selectedAutomationDetails = useMemo(() => (selectedAutomation ? decodeTrigger(selectedAutomation.trigger) : null), [selectedAutomation]);
 
-  const selectedAutomationDetails = useMemo(
-    () => (selectedAutomation ? decodeAutomation(selectedAutomation) : null),
-    [selectedAutomation]
-  );
+  const previewSteps = useMemo(() => {
+    const path = getLinearPath(nodes, edges);
+    return path.map((id) => nodes.find((item) => item.id === id)).filter((item): item is StudioNode => Boolean(item));
+  }, [edges, nodes]);
 
-  const flowReadiness = useMemo(() => {
-    let score = 0;
-    if (name.trim()) score += 25;
-    if (channel) score += 20;
-    if (triggerType === "new_message" || keyword.trim()) score += 20;
-    if (message.trim()) score += 25;
-    if (status === "Ativa") score += 10;
-    return score;
-  }, [channel, keyword, message, name, status, triggerType]);
-
-  const summary = useMemo(
-    () => [
-      { label: "Canal", value: channelLabel(channel) },
-      { label: "Entrada", value: triggerLabel(triggerType, keyword) },
-      { label: "Ação", value: actionLabel(actionType) },
-      { label: "Status", value: status },
-      { label: "Próxima etapa", value: secondMessage ? `Após ${delayMinutes || "0"} min` : "Desativada" }
-    ],
-    [actionType, channel, delayMinutes, keyword, secondMessage, status, triggerType]
-  );
+  const savedFlowLabel = useMemo(() => {
+    if (!selectedAutomation) return "";
+    const visual = decodeVisualTrigger(selectedAutomation.trigger);
+    if (visual) return `${visual.nodes.length} blocos visuais`;
+    return triggerLabel(selectedAutomationDetails?.triggerType, selectedAutomationDetails?.keyword);
+  }, [selectedAutomation, selectedAutomationDetails]);
 
   function applyTemplate(template: Template) {
+    const next = cloneTemplate(template);
     setActiveTemplate(template.id);
-    setName(template.name);
-    setChannel(template.channel);
-    setTriggerType(template.triggerType);
-    setKeyword(template.keyword);
-    setActionType(template.actionType);
-    setMessage(template.message);
-    setSecondMessage(template.secondMessage);
-    setDelayMinutes(template.delayMinutes);
+    setNodes(next.nodes);
+    setEdges(next.edges);
+    setName(template.title);
     setStatus("Ativa");
-    setStatusText(`Modelo aplicado: ${template.title}. Revise a mensagem e publique quando estiver pronto.`);
+    setSelectedNodeId(next.nodes[0]?.id || null);
+    setStatusText(`Modelo aplicado: ${template.title}. Edite os blocos e publique quando estiver pronto.`);
+  }
+
+  function handleConnect(connection: Connection) {
+    setEdges((current) => addEdge({ ...connection, type: "smoothstep", animated: true, className: "flow-studio-edge" }, current));
+  }
+
+  function handleAddNode(type: FlowCanvasNodeType) {
+    const id = `${type}-${Date.now()}`;
+    const position = { x: 140 + nodes.length * 40, y: 140 + nodes.length * 28 };
+    const defaults: Record<FlowCanvasNodeType, FlowNodeData> = {
+      entry: { label: "Nova entrada", channel: "whatsapp", triggerType: "new_message", keyword: "" },
+      message: { label: "Nova mensagem", message: "Escreva a resposta da Klio aqui." },
+      wait: { label: "Esperar", delayMinutes: 5 },
+      condition: { label: "Condição", condition: "contém palavra-chave" },
+      action: { label: "Ação final", actionType: "reply_same_channel", message: "" }
+    };
+    const nextNode = node(id, type, position.x, position.y, defaults[type]);
+    setNodes((current) => [...current, nextNode]);
+    setSelectedNodeId(id);
+  }
+
+  function updateNodeData(id: string, data: Partial<FlowNodeData>) {
+    setNodes((current) => current.map((item) => (item.id === id ? { ...item, data: { ...item.data, ...data } } : item)));
   }
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
     const requestedStatus = submitter?.value || status;
+    const finalStatus = validation.valid ? requestedStatus : "Rascunho";
+    const canvas = toCanvasTrigger(nodes, edges);
+
     setSaving(true);
+    setStatus(finalStatus);
     setStatusText("");
-    setStatus(requestedStatus);
 
     const response = await fetch("/api/automations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
-        channel,
-        triggerType,
-        keyword,
-        actionType,
-        secondMessage,
-        delayMinutes: Number(delayMinutes || 0),
-        status: requestedStatus,
-        message
+        channel: nodes.find((item) => item.type === "entry")?.data.channel || "multi",
+        triggerType: canvas.legacyFallback.triggerType,
+        keyword: canvas.legacyFallback.keyword,
+        actionType: canvas.legacyFallback.actionType,
+        secondMessage: canvas.legacyFallback.secondMessage,
+        delayMinutes: canvas.legacyFallback.delayMinutes,
+        status: finalStatus,
+        message: primaryMessage,
+        canvas
       })
     });
 
@@ -237,7 +608,13 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
 
     setAutomations((current) => [data.automation, ...current]);
     setTestingId(data.automation.id);
-    setStatusText(requestedStatus === "Ativa" ? "Fluxo publicado e pronto para teste." : "Rascunho salvo para revisar depois.");
+    setStatusText(
+      validation.valid
+        ? finalStatus === "Ativa"
+          ? "Fluxo visual publicado e pronto para teste."
+          : "Rascunho visual salvo para revisar depois."
+        : "Fluxo incompleto salvo como rascunho. Revise os alertas antes de publicar."
+    );
     setSaving(false);
   }
 
@@ -262,7 +639,7 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
         automationId: testingId,
         recipient: testRecipient,
         contactName: testContactName,
-        channel: selectedAutomation?.channel || channel
+        channel: selectedAutomation?.channel || nodes.find((item) => item.type === "entry")?.data.channel || "whatsapp"
       })
     });
 
@@ -279,189 +656,97 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
   }
 
   return (
-    <section className="flow-builder-command">
-      <form className="flow-builder-console" onSubmit={handleSave}>
-        <div className="flow-builder-hero">
+    <section className="flow-studio">
+      <form className="flow-studio-main" onSubmit={handleSave}>
+        <div className="flow-studio-header">
           <div>
-            <span className="workspace-kicker">Flow Studio</span>
-            <h2>Monte um fluxo sem pensar em lógica técnica.</h2>
-            <p>
-              Escolha um modelo, ajuste a entrada da conversa, escreva a resposta e teste antes de publicar.
-            </p>
+            <span className="workspace-kicker">Flow Studio visual</span>
+            <h2>Construa automações como um mapa de conversa.</h2>
+            <p>Arraste blocos, conecte etapas e publique um fluxo linear validado para WhatsApp, Instagram e outros canais.</p>
           </div>
-          <div className="flow-readiness">
-            <span>Pronto para publicar</span>
-            <strong>{flowReadiness}%</strong>
-            <div className="flow-readiness-bar">
-              <span style={{ width: `${flowReadiness}%` }} />
-            </div>
+          <div className="flow-studio-actions">
+            <input className="input" value={name} onChange={(event) => setName(event.target.value)} aria-label="Nome do fluxo" />
+            <select className="select" value={status} onChange={(event) => setStatus(event.target.value)}>
+              <option value="Ativa">Ativa</option>
+              <option value="Rascunho">Rascunho</option>
+            </select>
           </div>
         </div>
 
-        <div className="flow-builder-section">
-          <div className="flow-section-heading">
-            <span>01</span>
-            <div>
-              <strong>Escolha um ponto de partida</strong>
-              <p>Modelos prontos reduzem erro e aceleram a configuração.</p>
-            </div>
-          </div>
-          <div className="flow-template-grid">
-            {templates.map((template) => (
-              <button
-                className={`flow-template-card${activeTemplate === template.id ? " flow-template-card-active" : ""}`}
-                key={template.id}
-                onClick={() => applyTemplate(template)}
-                type="button"
-              >
-                <span>{template.useCase}</span>
-                <strong>{template.title}</strong>
-                <p>{template.subtitle}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flow-builder-section">
-          <div className="flow-section-heading">
-            <span>02</span>
-            <div>
-              <strong>Defina onde o fluxo começa</strong>
-              <p>Escolha o canal e a condição que inicia a automação.</p>
-            </div>
-          </div>
-          <label className="flow-field">
-            <span>Nome do fluxo</span>
-            <input className="input" onChange={(event) => setName(event.target.value)} value={name} />
-          </label>
-          <div className="flow-option-grid">
-            {channelOptions.map((item) => (
-              <OptionButton
-                active={channel === item.id}
-                description={item.description}
-                key={item.id}
-                onClick={() => setChannel(item.id)}
-                title={item.label}
-              />
-            ))}
-          </div>
-          <div className="flow-option-grid flow-option-grid-compact">
-            {triggerOptions.map((item) => (
-              <OptionButton
-                active={triggerType === item.id}
-                description={item.description}
-                key={item.id}
-                onClick={() => setTriggerType(item.id)}
-                title={item.label}
-              />
-            ))}
-          </div>
-          {triggerType === "keyword" ? (
-            <label className="flow-field">
-              <span>Palavra que inicia o fluxo</span>
-              <input className="input" onChange={(event) => setKeyword(event.target.value)} value={keyword} placeholder="Ex: quero, orçamento, preço" />
-            </label>
-          ) : null}
-        </div>
-
-        <div className="flow-builder-section">
-          <div className="flow-section-heading">
-            <span>03</span>
-            <div>
-              <strong>Escolha o que a Klio faz</strong>
-              <p>Defina se a plataforma responde, encaminha ou avisa sua equipe.</p>
-            </div>
-          </div>
-          <div className="flow-option-grid flow-option-grid-compact">
-            {actionOptions.map((item) => (
-              <OptionButton
-                active={actionType === item.id}
-                description={item.description}
-                key={item.id}
-                onClick={() => setActionType(item.id)}
-                title={item.label}
-              />
-            ))}
-          </div>
-          <label className="flow-field">
-            <span>Mensagem principal</span>
-            <textarea className="textarea flow-message-box" onChange={(event) => setMessage(event.target.value)} value={message} />
-          </label>
-          <div className="flow-two-columns">
-            <label className="flow-field">
-              <span>Espera da próxima etapa</span>
-              <input className="input" onChange={(event) => setDelayMinutes(event.target.value)} value={delayMinutes} inputMode="numeric" />
-            </label>
-            <label className="flow-field">
-              <span>Status do fluxo</span>
-              <select className="select" onChange={(event) => setStatus(event.target.value)} value={status}>
-                <option value="Ativa">Ativa</option>
-                <option value="Rascunho">Rascunho</option>
-              </select>
-            </label>
-          </div>
-          <label className="flow-field">
-            <span>Mensagem de continuação opcional</span>
-            <textarea className="textarea flow-message-box flow-message-box-small" onChange={(event) => setSecondMessage(event.target.value)} value={secondMessage} />
-          </label>
-        </div>
-
-        <div className="flow-builder-footer">
-          {statusText ? <p className="flow-status-message">{statusText}</p> : <p className="flow-status-message">Tudo que você editar aparece no preview antes de salvar.</p>}
-          <div className="flow-actions">
-            <button className="btn btn-secondary" disabled={saving} type="submit" name="saveStatus" value="Rascunho">
-              Salvar como rascunho
+        <div className="flow-template-strip">
+          {templates.map((template) => (
+            <button className={`flow-template-pill${activeTemplate === template.id ? " flow-template-pill-active" : ""}`} key={template.id} onClick={() => applyTemplate(template)} type="button">
+              <strong>{template.title}</strong>
+              <span>{template.subtitle}</span>
             </button>
-            <button className="btn btn-primary" disabled={saving} type="submit" name="saveStatus" value="Ativa">
-              {saving ? "Publicando..." : status === "Ativa" ? "Publicar fluxo" : "Salvar fluxo"}
+          ))}
+        </div>
+
+        <div className="flow-canvas-shell">
+          <FlowToolbar onAdd={handleAddNode} />
+          <ReactFlow<StudioNode, StudioEdge>
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={handleConnect}
+            onNodeClick={(_, clickedNode) => setSelectedNodeId(clickedNode.id)}
+            fitView
+            fitViewOptions={{ padding: 0.22 }}
+          >
+            <Background color="rgba(129,140,248,0.22)" gap={24} />
+            <MiniMap pannable zoomable className="flow-minimap" />
+            <Controls className="flow-controls" />
+          </ReactFlow>
+        </div>
+
+        <div className="flow-studio-bottom">
+          <FlowValidationPanel issues={validation.issues} valid={validation.valid} />
+          <div className="flow-actions">
+            {statusText ? <p className="flow-status-message">{statusText}</p> : null}
+            <button className="btn btn-secondary" disabled={saving} type="submit" value="Rascunho">
+              Salvar rascunho
+            </button>
+            <button className="btn btn-primary" disabled={saving} type="submit" value="Ativa">
+              {saving ? "Publicando..." : "Publicar fluxo"}
             </button>
           </div>
         </div>
       </form>
 
-      <aside className="flow-inspector">
-        <section className="flow-phone-preview">
-          <div className="flow-phone-head">
-            <div>
-              <strong>Preview da conversa</strong>
-              <span>{channelLabel(channel)} · {triggerLabel(triggerType, keyword)}</span>
-            </div>
-            <span className={status === "Ativa" ? "tag tag-success" : "tag tag-warning"}>{status}</span>
-          </div>
+      <aside className="flow-studio-side">
+        <NodeInspector nodeItem={selectedNode} onUpdate={updateNodeData} />
+
+        <section className="flow-inspector-panel">
+          <span className="workspace-kicker">Preview</span>
           <div className="flow-chat">
             <div className="flow-chat-bubble flow-chat-bubble-user">
               <span>Cliente</span>
-              <p>{triggerType === "keyword" ? keyword || "quero" : "Olá, preciso de ajuda"}</p>
+              <p>{fallback.triggerType === "new_message" ? "Olá, preciso de ajuda" : fallback.keyword || "quero"}</p>
             </div>
-            <div className="flow-chat-bubble flow-chat-bubble-bot">
-              <span>Klio</span>
-              <p>{message || "Escreva a mensagem principal do bot."}</p>
-            </div>
-            {secondMessage ? (
-              <div className="flow-chat-bubble flow-chat-bubble-bot flow-chat-bubble-soft">
-                <span>Klio · após {delayMinutes || "0"} min</span>
-                <p>{secondMessage}</p>
-              </div>
-            ) : null}
+            {previewSteps
+              .filter((item) => item.type === "message" || item.type === "wait" || item.type === "action")
+              .map((item) => {
+                if (item.type === "wait") {
+                  return (
+                    <div className="flow-chat-wait" key={item.id}>
+                      espera de {item.data.delayMinutes || 0} min
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="flow-chat-bubble flow-chat-bubble-bot" key={item.id}>
+                    <span>{item.type === "action" ? "Ação" : "Klio"}</span>
+                    <p>{item.type === "action" ? actionLabel(item.data.actionType) : item.data.message || "Mensagem sem texto"}</p>
+                  </div>
+                );
+              })}
           </div>
         </section>
 
-        <section className="flow-summary-panel">
-          <div className="command-panel-head">
-            <strong>Resumo do fluxo</strong>
-            <span className="workspace-chip">sem código</span>
-          </div>
-          <div className="flow-summary-list">
-            {summary.map((item) => (
-              <div className="flow-summary-row" key={item.label}>
-                <span>{item.label}</span>
-                <strong>{item.value}</strong>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="flow-test-panel">
+        <section className="flow-inspector-panel">
           <div className="command-panel-head">
             <strong>Teste rápido</strong>
             <span className="mini">{automations.length} fluxos salvos</span>
@@ -490,9 +775,7 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
           {selectedAutomation ? (
             <div className="flow-selected-mini">
               <strong>{selectedAutomation.name}</strong>
-              <span>
-                {channelLabel(selectedAutomation.channel)} · {triggerLabel(selectedAutomationDetails?.triggerType || "new_message", selectedAutomationDetails?.keyword || "")}
-              </span>
+              <span>{savedFlowLabel}</span>
             </div>
           ) : null}
           <button className="btn btn-secondary flow-test-button" disabled={testing} onClick={handleTest} type="button">
@@ -500,7 +783,7 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
           </button>
         </section>
 
-        <section className="flow-library-panel">
+        <section className="flow-inspector-panel">
           <div className="command-panel-head">
             <strong>Fluxos criados</strong>
             <span className="mini">{automations.length} no total</span>
@@ -508,17 +791,29 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
           <div className="flow-library-list">
             {automations.length ? (
               automations.map((item) => {
-                const details = decodeAutomation(item);
+                const details = decodeTrigger(item.trigger);
+                const visual = decodeVisualTrigger(item.trigger);
+
                 return (
                   <button
                     className={`flow-library-item${testingId === item.id ? " flow-library-item-active" : ""}`}
                     key={item.id}
-                    onClick={() => setTestingId(item.id)}
+                    onClick={() => {
+                      setTestingId(item.id);
+                      if (visual) {
+                        const restored = fromVisualTrigger(visual);
+                        setNodes(restored.nodes);
+                        setEdges(restored.edges);
+                        setName(item.name);
+                        setStatus(item.status);
+                        setSelectedNodeId(restored.nodes[0]?.id || null);
+                      }
+                    }}
                     type="button"
                   >
                     <div>
                       <strong>{item.name}</strong>
-                      <span>{channelLabel(item.channel)} · {triggerLabel(details.triggerType, details.keyword || "")}</span>
+                      <span>{visual ? `${visual.nodes.length} blocos visuais` : triggerLabel(details.triggerType, details.keyword)}</span>
                     </div>
                     <span className={item.status === "Ativa" ? "tag tag-success" : "tag tag-warning"}>{item.status}</span>
                   </button>
@@ -527,7 +822,7 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
             ) : (
               <div className="builder-empty-state">
                 <strong>Nenhum fluxo salvo ainda</strong>
-                <p className="mini">Configure o primeiro fluxo à esquerda e publique quando estiver pronto.</p>
+                <p className="mini">Monte o primeiro mapa visual e publique quando estiver pronto.</p>
               </div>
             )}
           </div>

@@ -8,13 +8,78 @@ export type AutomationDetails = {
   delayMinutes?: number;
 };
 
-export function encodeTrigger(details: AutomationDetails) {
+export type FlowCanvasNodeType = "entry" | "message" | "wait" | "condition" | "action";
+
+export type FlowCanvasNode = {
+  id: string;
+  type: FlowCanvasNodeType;
+  position: { x: number; y: number };
+  data: {
+    label: string;
+    channel?: string;
+    triggerType?: AutomationDetails["triggerType"];
+    keyword?: string;
+    message?: string;
+    delayMinutes?: number;
+    condition?: string;
+    actionType?: AutomationDetails["actionType"];
+  };
+};
+
+export type FlowCanvasEdge = {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+};
+
+export type VisualAutomationTrigger = {
+  version: 2;
+  nodes: FlowCanvasNode[];
+  edges: FlowCanvasEdge[];
+  entryNodeId: string;
+  linearPath: string[];
+  legacyFallback: AutomationDetails;
+};
+
+export type EncodedAutomationTrigger = AutomationDetails | VisualAutomationTrigger;
+
+function isVisualAutomationTrigger(value: unknown): value is VisualAutomationTrigger {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      (value as { version?: unknown }).version === 2 &&
+      Array.isArray((value as { nodes?: unknown }).nodes) &&
+      Array.isArray((value as { edges?: unknown }).edges)
+  );
+}
+
+export function encodeTrigger(details: EncodedAutomationTrigger) {
   return JSON.stringify(details);
+}
+
+export function decodeVisualTrigger(trigger: string): VisualAutomationTrigger | null {
+  try {
+    const parsed = JSON.parse(trigger) as unknown;
+    return isVisualAutomationTrigger(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
 }
 
 export function decodeTrigger(trigger: string): AutomationDetails {
   try {
-    const parsed = JSON.parse(trigger) as Partial<AutomationDetails>;
+    const parsed = JSON.parse(trigger) as Partial<AutomationDetails> | VisualAutomationTrigger;
+
+    if (isVisualAutomationTrigger(parsed)) {
+      return {
+        triggerType: parsed.legacyFallback.triggerType ?? "keyword",
+        keyword: parsed.legacyFallback.keyword ?? "",
+        actionType: parsed.legacyFallback.actionType ?? "reply_same_channel",
+        secondMessage: parsed.legacyFallback.secondMessage ?? "",
+        delayMinutes: Number(parsed.legacyFallback.delayMinutes ?? 0)
+      };
+    }
 
     return {
       triggerType: parsed.triggerType === "pix_pending" || parsed.triggerType === "new_message" ? parsed.triggerType : "keyword",
@@ -38,6 +103,15 @@ export function decodeTrigger(trigger: string): AutomationDetails {
 }
 
 export function humanizeTrigger(trigger: string) {
+  const visual = decodeVisualTrigger(trigger);
+
+  if (visual) {
+    const entry = visual.nodes.find((node) => node.id === visual.entryNodeId || node.type === "entry");
+    const channel = entry?.data.channel ? ` em ${entry.data.channel}` : "";
+    const keyword = visual.legacyFallback.keyword ? `: ${visual.legacyFallback.keyword}` : "";
+    return visual.legacyFallback.triggerType === "new_message" ? `Nova mensagem${channel}` : `Entrada visual${keyword}`;
+  }
+
   const details = decodeTrigger(trigger);
 
   if (details.triggerType === "new_message") {
@@ -52,6 +126,22 @@ export function humanizeTrigger(trigger: string) {
 }
 
 export function humanizeAction(trigger: string) {
+  const visual = decodeVisualTrigger(trigger);
+
+  if (visual) {
+    const action = visual.nodes.find((node) => node.type === "action");
+
+    if (action?.data.actionType === "handoff_whatsapp") {
+      return "Levar para WhatsApp";
+    }
+
+    if (action?.data.actionType === "notify_team") {
+      return "Avisar equipe";
+    }
+
+    return "Responder no canal";
+  }
+
   const details = decodeTrigger(trigger);
 
   if (details.actionType === "handoff_whatsapp") {
@@ -70,6 +160,16 @@ export function compileMessage(template: string, contactName?: string) {
 }
 
 export function describeFlow(trigger: string) {
+  const visual = decodeVisualTrigger(trigger);
+
+  if (visual) {
+    const steps = visual.linearPath
+      .map((id) => visual.nodes.find((node) => node.id === id)?.type)
+      .filter(Boolean);
+
+    return steps.length ? `${steps.length} blocos conectados` : "Fluxo visual";
+  }
+
   const details = decodeTrigger(trigger);
   const extras: string[] = [];
 
