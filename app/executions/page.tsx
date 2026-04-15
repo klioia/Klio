@@ -9,8 +9,8 @@ export default async function ExecutionsPage() {
   return (
     <AppShell
       userName={session.name}
-      title="Histórico de execuções."
-      description="Veja cada disparo, para quem o fluxo rodou e qual foi o resultado da execucao."
+      title="Histórico de execuções"
+      description="Veja cada disparo, para quem o fluxo rodou e qual foi o resultado da execução."
     >
       <div className="flow-list">
         {(executions as ExecutionRecord[]).map((item) => (

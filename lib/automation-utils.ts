@@ -74,7 +74,7 @@ export function describeFlow(trigger: string) {
   const extras: string[] = [];
 
   if (details.secondMessage) {
-    extras.push(`2a etapa em ${details.delayMinutes || 0} min`);
+    extras.push(`segunda etapa em ${details.delayMinutes || 0} min`);
   }
 
   return extras.length ? extras.join(" - ") : "Fluxo simples";

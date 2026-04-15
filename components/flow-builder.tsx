@@ -20,6 +20,7 @@ type Template = {
   id: string;
   title: string;
   subtitle: string;
+  useCase: string;
   name: string;
   channel: string;
   triggerType: string;
@@ -33,8 +34,9 @@ type Template = {
 const templates: Template[] = [
   {
     id: "lead",
-    title: "Qualificar lead",
-    subtitle: "Captura intenção e encaminha",
+    title: "Capturar lead",
+    subtitle: "Comentário ou DM vira conversa qualificada.",
+    useCase: "Vendas",
     name: "Qualificação automática de lead",
     channel: "instagram",
     triggerType: "keyword",
@@ -47,7 +49,8 @@ const templates: Template[] = [
   {
     id: "support",
     title: "Atendimento inicial",
-    subtitle: "Responde no próprio canal",
+    subtitle: "Responde a primeira mensagem e organiza o pedido.",
+    useCase: "Suporte",
     name: "Primeira resposta automática",
     channel: "whatsapp",
     triggerType: "new_message",
@@ -60,7 +63,8 @@ const templates: Template[] = [
   {
     id: "alerts",
     title: "Avisar equipe",
-    subtitle: "Notifica o time quando entrar oportunidade",
+    subtitle: "Quando surgir oportunidade, o time recebe contexto.",
+    useCase: "Operação",
     name: "Alerta interno de oportunidade",
     channel: "multi",
     triggerType: "keyword",
@@ -72,46 +76,63 @@ const templates: Template[] = [
   }
 ];
 
+const channelOptions = [
+  { id: "instagram", label: "Instagram", description: "DM, comentário e lead social" },
+  { id: "whatsapp", label: "WhatsApp", description: "Atendimento e fechamento" },
+  { id: "messenger", label: "Messenger", description: "Caixa de entrada Meta" },
+  { id: "telegram", label: "Telegram", description: "Comunidades e suporte" },
+  { id: "multi", label: "Multicanal", description: "Usar em qualquer canal" }
+];
+
+const triggerOptions = [
+  { id: "keyword", label: "Palavra-chave", description: "Quando o cliente escreve um termo" },
+  { id: "new_message", label: "Nova mensagem", description: "Sempre que uma conversa entrar" }
+];
+
+const actionOptions = [
+  { id: "reply_same_channel", label: "Responder no canal", description: "A Klio responde onde o cliente chamou" },
+  { id: "handoff_whatsapp", label: "Levar para WhatsApp", description: "Conduz o lead para o fechamento" },
+  { id: "notify_team", label: "Avisar equipe", description: "Cria uma tarefa interna para o time" }
+];
+
 function channelLabel(channel: string) {
-  switch (channel) {
-    case "instagram":
-      return "Instagram";
-    case "whatsapp":
-      return "WhatsApp";
-    case "messenger":
-      return "Messenger";
-    case "telegram":
-      return "Telegram";
-    case "multi":
-      return "Multicanal";
-    default:
-      return channel;
-  }
+  return channelOptions.find((item) => item.id === channel)?.label || channel;
 }
 
 function triggerLabel(triggerType: string, keyword: string) {
   if (triggerType === "keyword") {
-    return `Palavra-chave: ${keyword || "defina um termo"}`;
+    return keyword ? `Palavra-chave "${keyword}"` : "Palavra-chave a definir";
   }
 
   return "Nova mensagem recebida";
 }
 
 function actionLabel(actionType: string) {
-  switch (actionType) {
-    case "handoff_whatsapp":
-      return "Encaminhar para WhatsApp";
-    case "reply_same_channel":
-      return "Responder no mesmo canal";
-    case "notify_team":
-      return "Notificar a equipe";
-    default:
-      return actionType;
-  }
+  return actionOptions.find((item) => item.id === actionType)?.label || actionType;
 }
 
 function decodeAutomation(item: AutomationItem) {
   return decodeTrigger(item.trigger);
+}
+
+function OptionButton({
+  active,
+  title,
+  description,
+  onClick
+}: {
+  active: boolean;
+  title: string;
+  description: string;
+  onClick: () => void;
+}) {
+  return (
+    <button className={`flow-option${active ? " flow-option-active" : ""}`} type="button" onClick={onClick}>
+      <span className="flow-option-dot" />
+      <strong>{title}</strong>
+      <span>{description}</span>
+    </button>
+  );
 }
 
 export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
@@ -128,6 +149,8 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
     "Perfeito. Se fizer sentido, também posso encaminhar você para um especialista com todo o contexto da conversa."
   );
   const [delayMinutes, setDelayMinutes] = useState("10");
+  const [status, setStatus] = useState("Ativa");
+  const [activeTemplate, setActiveTemplate] = useState("lead");
   const [statusText, setStatusText] = useState("");
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -145,17 +168,29 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
     [selectedAutomation]
   );
 
+  const flowReadiness = useMemo(() => {
+    let score = 0;
+    if (name.trim()) score += 25;
+    if (channel) score += 20;
+    if (triggerType === "new_message" || keyword.trim()) score += 20;
+    if (message.trim()) score += 25;
+    if (status === "Ativa") score += 10;
+    return score;
+  }, [channel, keyword, message, name, status, triggerType]);
+
   const summary = useMemo(
     () => [
-      `Canal: ${channelLabel(channel)}`,
-      `Gatilho: ${triggerLabel(triggerType, keyword)}`,
-      `Ação principal: ${actionLabel(actionType)}`,
-      secondMessage ? `Segunda etapa após ${delayMinutes || "0"} min` : "Sem segunda etapa"
+      { label: "Canal", value: channelLabel(channel) },
+      { label: "Entrada", value: triggerLabel(triggerType, keyword) },
+      { label: "Ação", value: actionLabel(actionType) },
+      { label: "Status", value: status },
+      { label: "Próxima etapa", value: secondMessage ? `Após ${delayMinutes || "0"} min` : "Desativada" }
     ],
-    [actionType, channel, delayMinutes, keyword, secondMessage, triggerType]
+    [actionType, channel, delayMinutes, keyword, secondMessage, status, triggerType]
   );
 
   function applyTemplate(template: Template) {
+    setActiveTemplate(template.id);
     setName(template.name);
     setChannel(template.channel);
     setTriggerType(template.triggerType);
@@ -164,13 +199,17 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
     setMessage(template.message);
     setSecondMessage(template.secondMessage);
     setDelayMinutes(template.delayMinutes);
-    setStatusText(`Template aplicado: ${template.title}.`);
+    setStatus("Ativa");
+    setStatusText(`Modelo aplicado: ${template.title}. Revise a mensagem e publique quando estiver pronto.`);
   }
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const requestedStatus = submitter?.value || status;
     setSaving(true);
     setStatusText("");
+    setStatus(requestedStatus);
 
     const response = await fetch("/api/automations", {
       method: "POST",
@@ -183,7 +222,7 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
         actionType,
         secondMessage,
         delayMinutes: Number(delayMinutes || 0),
-        status: "Ativa",
+        status: requestedStatus,
         message
       })
     });
@@ -198,18 +237,18 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
 
     setAutomations((current) => [data.automation, ...current]);
     setTestingId(data.automation.id);
-    setStatusText("Fluxo salvo com sucesso e pronto para teste.");
+    setStatusText(requestedStatus === "Ativa" ? "Fluxo publicado e pronto para teste." : "Rascunho salvo para revisar depois.");
     setSaving(false);
   }
 
   async function handleTest() {
     if (!testingId) {
-      setStatusText("Salve um fluxo primeiro para testar.");
+      setStatusText("Salve ou selecione um fluxo antes de testar.");
       return;
     }
 
     if (!testRecipient.trim()) {
-      setStatusText("Informe um destinatário para executar o teste.");
+      setStatusText("Informe um WhatsApp ou destino de teste para executar o fluxo.");
       return;
     }
 
@@ -240,212 +279,246 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
   }
 
   return (
-    <div className="builder-layout">
-      <form className="card panel builder-form" onSubmit={handleSave}>
-        <div className="builder-section-header">
+    <section className="flow-builder-command">
+      <form className="flow-builder-console" onSubmit={handleSave}>
+        <div className="flow-builder-hero">
           <div>
-            <strong>Construtor de fluxos</strong>
-            <p className="mini" style={{ marginTop: 8 }}>
-              Crie um fluxo rápido, reutilize templates e teste tudo sem sair do painel.
+            <span className="workspace-kicker">Flow Studio</span>
+            <h2>Monte um fluxo sem pensar em lógica técnica.</h2>
+            <p>
+              Escolha um modelo, ajuste a entrada da conversa, escreva a resposta e teste antes de publicar.
             </p>
           </div>
-          <span className="pricing-badge pricing-badge-featured">builder</span>
+          <div className="flow-readiness">
+            <span>Pronto para publicar</span>
+            <strong>{flowReadiness}%</strong>
+            <div className="flow-readiness-bar">
+              <span style={{ width: `${flowReadiness}%` }} />
+            </div>
+          </div>
         </div>
 
-        <div className="builder-block">
-          <div className="builder-block-title">Comece mais rápido</div>
-          <div className="builder-template-grid" style={{ marginTop: 16 }}>
+        <div className="flow-builder-section">
+          <div className="flow-section-heading">
+            <span>01</span>
+            <div>
+              <strong>Escolha um ponto de partida</strong>
+              <p>Modelos prontos reduzem erro e aceleram a configuração.</p>
+            </div>
+          </div>
+          <div className="flow-template-grid">
             {templates.map((template) => (
               <button
-                className="builder-template"
+                className={`flow-template-card${activeTemplate === template.id ? " flow-template-card-active" : ""}`}
                 key={template.id}
                 onClick={() => applyTemplate(template)}
                 type="button"
               >
+                <span>{template.useCase}</span>
                 <strong>{template.title}</strong>
-                <span className="mini">{template.subtitle}</span>
+                <p>{template.subtitle}</p>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="builder-block">
-          <div className="builder-block-title">Identidade do fluxo</div>
-          <div className="grid-2" style={{ marginTop: 16 }}>
-            <label>
-              <span className="mini">Nome do fluxo</span>
-              <input className="input" onChange={(event) => setName(event.target.value)} value={name} />
-            </label>
-            <label>
-              <span className="mini">Canal</span>
-              <select className="select" onChange={(event) => setChannel(event.target.value)} value={channel}>
-                <option value="instagram">Instagram</option>
-                <option value="whatsapp">WhatsApp</option>
-                <option value="messenger">Messenger</option>
-                <option value="telegram">Telegram</option>
-                <option value="multi">Multicanal</option>
-              </select>
-            </label>
+        <div className="flow-builder-section">
+          <div className="flow-section-heading">
+            <span>02</span>
+            <div>
+              <strong>Defina onde o fluxo começa</strong>
+              <p>Escolha o canal e a condição que inicia a automação.</p>
+            </div>
           </div>
-        </div>
-
-        <div className="builder-block">
-          <div className="builder-block-title">Entrada e decisão</div>
-          <div className="grid-2" style={{ marginTop: 16 }}>
-            <label>
-              <span className="mini">Tipo de gatilho</span>
-              <select className="select" onChange={(event) => setTriggerType(event.target.value)} value={triggerType}>
-                <option value="keyword">Palavra-chave</option>
-                <option value="new_message">Nova mensagem</option>
-              </select>
-            </label>
-            <label>
-              <span className="mini">Ação principal</span>
-              <select className="select" onChange={(event) => setActionType(event.target.value)} value={actionType}>
-                <option value="handoff_whatsapp">Encaminhar para WhatsApp</option>
-                <option value="reply_same_channel">Responder no mesmo canal</option>
-                <option value="notify_team">Notificar equipe</option>
-              </select>
-            </label>
+          <label className="flow-field">
+            <span>Nome do fluxo</span>
+            <input className="input" onChange={(event) => setName(event.target.value)} value={name} />
+          </label>
+          <div className="flow-option-grid">
+            {channelOptions.map((item) => (
+              <OptionButton
+                active={channel === item.id}
+                description={item.description}
+                key={item.id}
+                onClick={() => setChannel(item.id)}
+                title={item.label}
+              />
+            ))}
+          </div>
+          <div className="flow-option-grid flow-option-grid-compact">
+            {triggerOptions.map((item) => (
+              <OptionButton
+                active={triggerType === item.id}
+                description={item.description}
+                key={item.id}
+                onClick={() => setTriggerType(item.id)}
+                title={item.label}
+              />
+            ))}
           </div>
           {triggerType === "keyword" ? (
-            <label style={{ display: "block", marginTop: 16 }}>
-              <span className="mini">Palavra-chave</span>
-              <input className="input" onChange={(event) => setKeyword(event.target.value)} value={keyword} />
+            <label className="flow-field">
+              <span>Palavra que inicia o fluxo</span>
+              <input className="input" onChange={(event) => setKeyword(event.target.value)} value={keyword} placeholder="Ex: quero, orçamento, preço" />
             </label>
           ) : null}
         </div>
 
-        <div className="builder-block">
-          <div className="builder-block-title">Mensagens da automação</div>
-          <label style={{ display: "block", marginTop: 16 }}>
-            <span className="mini">Mensagem inicial</span>
-            <textarea className="textarea" onChange={(event) => setMessage(event.target.value)} value={message} />
-          </label>
-          <div className="grid-2" style={{ marginTop: 16 }}>
-            <label>
-              <span className="mini">Espera da segunda etapa (min)</span>
-              <input className="input" onChange={(event) => setDelayMinutes(event.target.value)} value={delayMinutes} />
-            </label>
-            <label>
-              <span className="mini">Segunda etapa opcional</span>
-              <input className="input" onChange={(event) => setSecondMessage(event.target.value)} value={secondMessage} />
-            </label>
-          </div>
-        </div>
-
-        <div className="builder-preview premium-preview" style={{ marginTop: 18 }}>
-          <div className="builder-node">
-            <span className="mini">Entrada</span>
-            <strong>{triggerLabel(triggerType, keyword)}</strong>
-          </div>
-          <div className="builder-arrow">{`->`}</div>
-          <div className="builder-node">
-            <span className="mini">Resposta</span>
-            <strong>{message}</strong>
-          </div>
-          <div className="builder-arrow">{`->`}</div>
-          <div className="builder-node builder-node-soft">
-            <span className="mini">Próximo passo</span>
-            <strong>{secondMessage || "Sem segunda etapa"}</strong>
-          </div>
-        </div>
-
-        <div className="builder-summary-grid">
-          {summary.map((item) => (
-            <div className="builder-summary-card" key={item}>
-              <strong>{item}</strong>
+        <div className="flow-builder-section">
+          <div className="flow-section-heading">
+            <span>03</span>
+            <div>
+              <strong>Escolha o que a Klio faz</strong>
+              <p>Defina se a plataforma responde, encaminha ou avisa sua equipe.</p>
             </div>
-          ))}
+          </div>
+          <div className="flow-option-grid flow-option-grid-compact">
+            {actionOptions.map((item) => (
+              <OptionButton
+                active={actionType === item.id}
+                description={item.description}
+                key={item.id}
+                onClick={() => setActionType(item.id)}
+                title={item.label}
+              />
+            ))}
+          </div>
+          <label className="flow-field">
+            <span>Mensagem principal</span>
+            <textarea className="textarea flow-message-box" onChange={(event) => setMessage(event.target.value)} value={message} />
+          </label>
+          <div className="flow-two-columns">
+            <label className="flow-field">
+              <span>Espera da próxima etapa</span>
+              <input className="input" onChange={(event) => setDelayMinutes(event.target.value)} value={delayMinutes} inputMode="numeric" />
+            </label>
+            <label className="flow-field">
+              <span>Status do fluxo</span>
+              <select className="select" onChange={(event) => setStatus(event.target.value)} value={status}>
+                <option value="Ativa">Ativa</option>
+                <option value="Rascunho">Rascunho</option>
+              </select>
+            </label>
+          </div>
+          <label className="flow-field">
+            <span>Mensagem de continuação opcional</span>
+            <textarea className="textarea flow-message-box flow-message-box-small" onChange={(event) => setSecondMessage(event.target.value)} value={secondMessage} />
+          </label>
         </div>
 
-        {statusText ? <p className="mini builder-status">{statusText}</p> : null}
-        <div className="cta-row" style={{ marginTop: 18 }}>
-          <button className="btn btn-primary" disabled={saving} type="submit">
-            {saving ? "Salvando..." : "Salvar fluxo"}
-          </button>
-          <button className="btn btn-secondary" disabled={testing} onClick={handleTest} type="button">
-            {testing ? "Testando..." : "Testar fluxo"}
-          </button>
+        <div className="flow-builder-footer">
+          {statusText ? <p className="flow-status-message">{statusText}</p> : <p className="flow-status-message">Tudo que você editar aparece no preview antes de salvar.</p>}
+          <div className="flow-actions">
+            <button className="btn btn-secondary" disabled={saving} type="submit" name="saveStatus" value="Rascunho">
+              Salvar como rascunho
+            </button>
+            <button className="btn btn-primary" disabled={saving} type="submit" name="saveStatus" value="Ativa">
+              {saving ? "Publicando..." : status === "Ativa" ? "Publicar fluxo" : "Salvar fluxo"}
+            </button>
+          </div>
         </div>
       </form>
 
-      <div className="flow-list">
-        <section className="card panel">
-          <strong>Teste rápido</strong>
-          <div className="grid-2" style={{ marginTop: 18 }}>
-            <label>
-              <span className="mini">Fluxo para testar</span>
-              <select className="select" onChange={(event) => setTestingId(event.target.value)} value={testingId}>
-                <option value="">Selecione um fluxo</option>
-                {automations.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="mini">Nome do contato</span>
-              <input className="input" value={testContactName} onChange={(event) => setTestContactName(event.target.value)} />
-            </label>
-          </div>
-          <label style={{ display: "block", marginTop: 16 }}>
-            <span className="mini">Destino do teste</span>
-            <input
-              className="input"
-              placeholder="5511999999999"
-              value={testRecipient}
-              onChange={(event) => setTestRecipient(event.target.value)}
-            />
-          </label>
-
-          {selectedAutomation ? (
-            <div className="builder-selected-flow">
-              <div className="flow-item flow-item-rich">
-                <div>
-                  <strong>{selectedAutomation.name}</strong>
-                  <div className="mini">
-                    {channelLabel(selectedAutomation.channel)} · {selectedAutomation.status}
-                  </div>
-                </div>
-                <span className="tag tag-success">selecionado</span>
-              </div>
-              <div className="builder-selected-meta">
-                <div className="builder-summary-card">
-                  <span className="mini">Gatilho</span>
-                  <strong>{triggerLabel(selectedAutomationDetails?.triggerType || "new_message", selectedAutomationDetails?.keyword || "")}</strong>
-                </div>
-                <div className="builder-summary-card">
-                  <span className="mini">Ação</span>
-                  <strong>{actionLabel(selectedAutomationDetails?.actionType || "reply_same_channel")}</strong>
-                </div>
-              </div>
+      <aside className="flow-inspector">
+        <section className="flow-phone-preview">
+          <div className="flow-phone-head">
+            <div>
+              <strong>Preview da conversa</strong>
+              <span>{channelLabel(channel)} · {triggerLabel(triggerType, keyword)}</span>
             </div>
-          ) : null}
+            <span className={status === "Ativa" ? "tag tag-success" : "tag tag-warning"}>{status}</span>
+          </div>
+          <div className="flow-chat">
+            <div className="flow-chat-bubble flow-chat-bubble-user">
+              <span>Cliente</span>
+              <p>{triggerType === "keyword" ? keyword || "quero" : "Olá, preciso de ajuda"}</p>
+            </div>
+            <div className="flow-chat-bubble flow-chat-bubble-bot">
+              <span>Klio</span>
+              <p>{message || "Escreva a mensagem principal do bot."}</p>
+            </div>
+            {secondMessage ? (
+              <div className="flow-chat-bubble flow-chat-bubble-bot flow-chat-bubble-soft">
+                <span>Klio · após {delayMinutes || "0"} min</span>
+                <p>{secondMessage}</p>
+              </div>
+            ) : null}
+          </div>
         </section>
 
-        <section className="card panel">
-          <div className="flow-item">
+        <section className="flow-summary-panel">
+          <div className="command-panel-head">
+            <strong>Resumo do fluxo</strong>
+            <span className="workspace-chip">sem código</span>
+          </div>
+          <div className="flow-summary-list">
+            {summary.map((item) => (
+              <div className="flow-summary-row" key={item.label}>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="flow-test-panel">
+          <div className="command-panel-head">
+            <strong>Teste rápido</strong>
+            <span className="mini">{automations.length} fluxos salvos</span>
+          </div>
+          <label className="flow-field">
+            <span>Fluxo para testar</span>
+            <select className="select" onChange={(event) => setTestingId(event.target.value)} value={testingId}>
+              <option value="">Selecione um fluxo</option>
+              {automations.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="flow-two-columns">
+            <label className="flow-field">
+              <span>Contato</span>
+              <input className="input" value={testContactName} onChange={(event) => setTestContactName(event.target.value)} />
+            </label>
+            <label className="flow-field">
+              <span>Destino</span>
+              <input className="input" placeholder="5511999999999" value={testRecipient} onChange={(event) => setTestRecipient(event.target.value)} />
+            </label>
+          </div>
+          {selectedAutomation ? (
+            <div className="flow-selected-mini">
+              <strong>{selectedAutomation.name}</strong>
+              <span>
+                {channelLabel(selectedAutomation.channel)} · {triggerLabel(selectedAutomationDetails?.triggerType || "new_message", selectedAutomationDetails?.keyword || "")}
+              </span>
+            </div>
+          ) : null}
+          <button className="btn btn-secondary flow-test-button" disabled={testing} onClick={handleTest} type="button">
+            {testing ? "Testando..." : "Enviar teste"}
+          </button>
+        </section>
+
+        <section className="flow-library-panel">
+          <div className="command-panel-head">
             <strong>Fluxos criados</strong>
             <span className="mini">{automations.length} no total</span>
           </div>
-          <div className="flow-list" style={{ marginTop: 18 }}>
+          <div className="flow-library-list">
             {automations.length ? (
               automations.map((item) => {
                 const details = decodeAutomation(item);
                 return (
                   <button
-                    className={`flow-item flow-item-rich flow-item-button${testingId === item.id ? " flow-item-button-active" : ""}`}
+                    className={`flow-library-item${testingId === item.id ? " flow-library-item-active" : ""}`}
                     key={item.id}
                     onClick={() => setTestingId(item.id)}
                     type="button"
                   >
                     <div>
                       <strong>{item.name}</strong>
-                      <div className="mini">
-                        {channelLabel(item.channel)} · {triggerLabel(details.triggerType, details.keyword || "")}
-                      </div>
+                      <span>{channelLabel(item.channel)} · {triggerLabel(details.triggerType, details.keyword || "")}</span>
                     </div>
                     <span className={item.status === "Ativa" ? "tag tag-success" : "tag tag-warning"}>{item.status}</span>
                   </button>
@@ -454,12 +527,12 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
             ) : (
               <div className="builder-empty-state">
                 <strong>Nenhum fluxo salvo ainda</strong>
-                <p className="mini">Crie seu primeiro fluxo para começar a testar a operação da Klio.</p>
+                <p className="mini">Configure o primeiro fluxo à esquerda e publique quando estiver pronto.</p>
               </div>
             )}
           </div>
         </section>
-      </div>
-    </div>
+      </aside>
+    </section>
   );
 }

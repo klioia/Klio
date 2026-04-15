@@ -155,55 +155,55 @@ export default async function DashboardPage() {
         ))}
       </section>
 
-      <section className="dashboard-workbench">
+      <section className="flow-workspace-focus">
         <FlowBuilder initialAutomations={automations} />
+      </section>
 
-        <div className="dashboard-rail">
-          <section className="command-panel">
-            <div className="command-panel-head">
-              <strong>Inbox operacional</strong>
-              <Link href="/leads">Ver fila completa</Link>
-            </div>
-            <div className="live-feed-list">
-              {inbox.map((item) => (
-                <div className="live-feed-item" key={item.id}>
+      <section className="dashboard-support-grid">
+        <section className="command-panel">
+          <div className="command-panel-head">
+            <strong>Inbox operacional</strong>
+            <Link href="/leads">Ver fila completa</Link>
+          </div>
+          <div className="live-feed-list">
+            {inbox.map((item) => (
+              <div className="live-feed-item" key={item.id}>
+                <div>
+                  <strong>{item.contact}</strong>
+                  <div className="mini">{item.origin}</div>
+                  <p>{item.text}</p>
+                </div>
+                <span className={item.status === "Novo" ? "tag tag-success" : "tag tag-warning"}>{item.status}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="command-panel">
+          <div className="command-panel-head">
+            <strong>Fluxos ativos agora</strong>
+            <Link href="/automations">Abrir biblioteca</Link>
+          </div>
+          <div className="command-status-list">
+            {automations.length ? (
+              automations.map((item) => (
+                <div className="command-status-row" key={item.id}>
                   <div>
-                    <strong>{item.contact}</strong>
-                    <div className="mini">{item.origin}</div>
-                    <p>{item.text}</p>
+                    <span className="mini">{item.channel}</span>
+                    <strong>{item.name}</strong>
+                    <p>{humanizeTrigger(item.trigger)}</p>
                   </div>
-                  <span className={item.status === "Novo" ? "tag tag-success" : "tag tag-warning"}>{item.status}</span>
+                  <span className={item.status === "Ativa" ? "tag tag-success" : "tag tag-warning"}>{item.status}</span>
                 </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="command-panel">
-            <div className="command-panel-head">
-              <strong>Fluxos ativos agora</strong>
-              <Link href="/automations">Abrir biblioteca</Link>
-            </div>
-            <div className="command-status-list">
-              {automations.length ? (
-                automations.map((item) => (
-                  <div className="command-status-row" key={item.id}>
-                    <div>
-                      <span className="mini">{item.channel}</span>
-                      <strong>{item.name}</strong>
-                      <p>{humanizeTrigger(item.trigger)}</p>
-                    </div>
-                    <span className={item.status === "Ativa" ? "tag tag-success" : "tag tag-warning"}>{item.status}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="builder-empty-state">
-                  <strong>Nenhum fluxo ativo</strong>
-                  <p className="mini">Publique seu primeiro fluxo para começar a operação com automação real.</p>
-                </div>
-              )}
-            </div>
-          </section>
-        </div>
+              ))
+            ) : (
+              <div className="builder-empty-state">
+                <strong>Nenhum fluxo ativo</strong>
+                <p className="mini">Publique seu primeiro fluxo para começar a operação com automação real.</p>
+              </div>
+            )}
+          </div>
+        </section>
       </section>
     </AppShell>
   );

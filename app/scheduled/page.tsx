@@ -26,7 +26,7 @@ export default async function ScheduledPage() {
   return (
     <AppShell
       userName={session.name}
-      title="Fila de execucao agendada."
+      title="Fila de execução agendada"
       description="Acompanhe as proximas etapas da automacao, com horario previsto, status e visibilidade de cada disparo."
     >
       <div className="card panel orchestration-panel" style={{ marginBottom: 24 }}>

@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
 
   if (!session) {
-    return NextResponse.json({ ok: false, error: "Sessao invalida." }, { status: 401 });
+    return NextResponse.json({ ok: false, error: "Sessão inválida." }, { status: 401 });
   }
 
   try {

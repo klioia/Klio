@@ -109,7 +109,7 @@ export function AppShell({ userName, title, description, children }: AppShellPro
             <span className="workspace-kicker">Workspace</span>
             <strong>Klio Command Center</strong>
             <p className="mini">
-              Toda a operação de automação, atendimento e handoff organizada em um único núcleo.
+              Toda a operação de automação, atendimento e repasse organizada em um único núcleo.
             </p>
             <div className="workspace-status-list">
               <div className="workspace-status-row">

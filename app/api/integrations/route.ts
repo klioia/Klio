@@ -12,7 +12,7 @@ export async function GET() {
   const session = await getSession();
 
   if (!session) {
-    return NextResponse.json({ ok: false, error: "Sessao invalida." }, { status: 401 });
+    return NextResponse.json({ ok: false, error: "Sessão inválida." }, { status: 401 });
   }
 
   const integrations = await getIntegrations(session.tenantId);
@@ -23,7 +23,7 @@ export async function PUT(request: NextRequest) {
   const session = await getSession();
   const body = (await request.json()) as IntegrationPayload;
   if (!session) {
-    return NextResponse.json({ ok: false, error: "Sessao invalida." }, { status: 401 });
+    return NextResponse.json({ ok: false, error: "Sessão inválida." }, { status: 401 });
   }
 
   const current = await getIntegrations(session.tenantId) as any;
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
 
   if (!session) {
-    return NextResponse.json({ ok: false, error: "Sessao invalida." }, { status: 401 });
+    return NextResponse.json({ ok: false, error: "Sessão inválida." }, { status: 401 });
   }
 
   if (body.channel !== "whatsapp" && body.channel !== "instagram") {

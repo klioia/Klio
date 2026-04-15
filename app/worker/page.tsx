@@ -22,7 +22,7 @@ export default async function WorkerPage() {
         </div>
         <div className="chip-row" style={{ marginTop: 18 }}>
           <span className="tag tag-warning">
-            Ultima execucao: {state.lastRunAt ? new Date(state.lastRunAt).toLocaleString("pt-BR") : "nunca"}
+            Última execução: {state.lastRunAt ? new Date(state.lastRunAt).toLocaleString("pt-BR") : "nunca"}
           </span>
           <span className="tag tag-warning">Ultimo lote: {state.lastProcessed}</span>
           <span className="tag tag-warning">Pendentes: {state.pending}</span>

@@ -116,7 +116,7 @@ export async function processDueJobs() {
       tenantId: job.tenantId,
       userId: job.userId,
       automationId: job.automationId,
-      automationName: `${job.automationName} - 2a etapa`,
+      automationName: `${job.automationName} - segunda etapa`,
       channel: job.channel,
       contactName: job.contactName,
       recipient: job.recipient,
