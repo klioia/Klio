@@ -16,13 +16,21 @@ export type FlowCanvasNode = {
   position: { x: number; y: number };
   data: {
     label: string;
+    nodeKind?: string;
+    nodeKindLabel?: string;
+    category?: "trigger" | "action" | "logic" | "data";
     channel?: string;
     triggerType?: AutomationDetails["triggerType"];
     keyword?: string;
     message?: string;
+    quickReplies?: string;
+    mediaType?: string;
+    mediaUrl?: string;
     delayMinutes?: number;
     condition?: string;
     actionType?: AutomationDetails["actionType"];
+    variableName?: string;
+    variableValue?: string;
   };
 };
 

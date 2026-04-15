@@ -2635,6 +2635,39 @@ button, input, select, textarea { font: inherit; }
   font-size: 13px;
   line-height: 1.6;
 }
+.flow-chat-bubble small {
+  display: inline-flex;
+  margin-top: 10px;
+  color: #aeb7ee;
+  font-size: 11px;
+}
+.flow-variable-row,
+.flow-quick-replies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.flow-variable-row {
+  margin-top: -4px;
+}
+.flow-variable-row button,
+.flow-quick-replies button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(129, 140, 248, 0.16);
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.08);
+  color: #dbe4ff;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+}
+.flow-quick-replies {
+  margin-top: 10px;
+}
+.flow-quick-replies button {
+  background: rgba(255, 255, 255, 0.06);
+}
 .flow-chat-bubble-user {
   justify-self: start;
   background: rgba(255, 255, 255, 0.03);
@@ -2752,6 +2785,19 @@ button, input, select, textarea { font: inherit; }
   gap: 10px;
   align-self: start;
 }
+.flow-autosave-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(129, 140, 248, 0.14);
+  background: rgba(99, 102, 241, 0.08);
+  color: #c7d2fe;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
 .flow-template-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2807,14 +2853,34 @@ button, input, select, textarea { font: inherit; }
   left: 16px;
   top: 16px;
   z-index: 8;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  width: min(860px, calc(100% - 32px));
+  display: grid;
+  gap: 10px;
   padding: 8px;
   border-radius: 18px;
   border: 1px solid rgba(129, 140, 248, 0.14);
   background: rgba(8, 13, 29, 0.82);
   backdrop-filter: blur(14px);
+}
+.flow-toolbar-actions,
+.flow-toolbar-group > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.flow-toolbar-actions {
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(129, 140, 248, 0.1);
+}
+.flow-toolbar-group {
+  display: grid;
+  gap: 8px;
+}
+.flow-toolbar-group > strong {
+  color: #aeb7ee;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 .flow-canvas-toolbar button {
   display: inline-flex;
@@ -2829,6 +2895,10 @@ button, input, select, textarea { font: inherit; }
   cursor: pointer;
   font-size: 12px;
   font-weight: 700;
+}
+.flow-canvas-toolbar button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
 }
 .flow-canvas-toolbar button:hover {
   border-color: rgba(196, 181, 253, 0.36);
@@ -2895,6 +2965,22 @@ button, input, select, textarea { font: inherit; }
   font-size: 12px;
   line-height: 1.5;
 }
+.flow-node-kind {
+  display: inline-flex;
+  margin-top: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(129, 140, 248, 0.16);
+  color: #aeb7ee;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.flow-node-kind-trigger { color: #86efac; }
+.flow-node-kind-action { color: #c4b5fd; }
+.flow-node-kind-logic { color: #7dd3fc; }
+.flow-node-kind-data { color: #fcd34d; }
 .flow-node-card-entry .flow-node-card-head > span { background: linear-gradient(135deg, #22c55e, #14b8a6); }
 .flow-node-card-message .flow-node-card-head > span { background: linear-gradient(135deg, #6366f1, #a78bfa); }
 .flow-node-card-wait .flow-node-card-head > span { background: linear-gradient(135deg, #f59e0b, #f97316); }

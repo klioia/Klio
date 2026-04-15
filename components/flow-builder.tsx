@@ -15,7 +15,7 @@ import {
   type Node,
   type NodeProps
 } from "@xyflow/react";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   AutomationDetails,
   FlowCanvasEdge,
@@ -41,13 +41,21 @@ type FlowBuilderProps = {
 
 type FlowNodeData = {
   label: string;
+  nodeKind?: string;
+  nodeKindLabel?: string;
+  category?: "trigger" | "action" | "logic" | "data";
   channel?: string;
   triggerType?: AutomationDetails["triggerType"];
   keyword?: string;
   message?: string;
+  quickReplies?: string;
+  mediaType?: string;
+  mediaUrl?: string;
   delayMinutes?: number;
   condition?: string;
   actionType?: AutomationDetails["actionType"];
+  variableName?: string;
+  variableValue?: string;
 };
 
 type StudioNode = Node<FlowNodeData, FlowCanvasNodeType>;
@@ -59,6 +67,16 @@ type Template = {
   subtitle: string;
   nodes: StudioNode[];
   edges: StudioEdge[];
+};
+
+type NodePaletteItem = {
+  id: string;
+  label: string;
+  description: string;
+  category: FlowNodeData["category"];
+  baseType: FlowCanvasNodeType;
+  icon: string;
+  data: FlowNodeData;
 };
 
 const channelOptions = [
@@ -79,6 +97,139 @@ const actionOptions = [
   { id: "handoff_whatsapp", label: "Levar para WhatsApp" },
   { id: "notify_team", label: "Avisar equipe" }
 ];
+
+const nodePalette: { title: string; items: NodePaletteItem[] }[] = [
+  {
+    title: "Triggers",
+    items: [
+      {
+        id: "incoming-message",
+        label: "Mensagem recebida",
+        description: "Inicia quando alguém chama em um canal.",
+        category: "trigger",
+        baseType: "entry",
+        icon: "IN",
+        data: { label: "Mensagem recebida", nodeKind: "incoming_message", nodeKindLabel: "Mensagem recebida", category: "trigger", channel: "whatsapp", triggerType: "new_message" }
+      },
+      {
+        id: "new-lead",
+        label: "Novo lead",
+        description: "Entrada vinda de anúncio, formulário ou campanha.",
+        category: "trigger",
+        baseType: "entry",
+        icon: "LEAD",
+        data: { label: "Novo lead", nodeKind: "new_lead", nodeKindLabel: "Novo lead", category: "trigger", channel: "multi", triggerType: "keyword", keyword: "lead" }
+      },
+      {
+        id: "webhook-received",
+        label: "Webhook recebido",
+        description: "Recebe evento de outra ferramenta.",
+        category: "trigger",
+        baseType: "entry",
+        icon: "API",
+        data: { label: "Webhook recebido", nodeKind: "webhook_received", nodeKindLabel: "Webhook recebido", category: "trigger", channel: "multi", triggerType: "keyword", keyword: "webhook" }
+      }
+    ]
+  },
+  {
+    title: "Ações",
+    items: [
+      {
+        id: "send-message",
+        label: "Enviar mensagem",
+        description: "Texto com variáveis, respostas rápidas e atraso.",
+        category: "action",
+        baseType: "message",
+        icon: "MSG",
+        data: { label: "Enviar mensagem", nodeKind: "send_message", nodeKindLabel: "Enviar mensagem", category: "action", message: "Olá {{nome}}, posso te ajudar agora.", quickReplies: "Quero saber mais, Falar com atendente" }
+      },
+      {
+        id: "send-media",
+        label: "Enviar mídia",
+        description: "Imagem, áudio, vídeo ou documento.",
+        category: "action",
+        baseType: "message",
+        icon: "MID",
+        data: { label: "Enviar mídia", nodeKind: "send_media", nodeKindLabel: "Enviar mídia", category: "action", message: "Separei este material para você, {{nome}}.", mediaType: "imagem", mediaUrl: "" }
+      },
+      {
+        id: "notify-team",
+        label: "Notificar equipe",
+        description: "Avisa vendedor ou suporte com contexto.",
+        category: "action",
+        baseType: "action",
+        icon: "TEAM",
+        data: { label: "Notificar equipe", nodeKind: "notify_team", nodeKindLabel: "Notificar equipe", category: "action", actionType: "notify_team", message: "Lead quente aguardando atendimento." }
+      },
+      {
+        id: "wait",
+        label: "Esperar",
+        description: "Pausa antes da próxima etapa.",
+        category: "action",
+        baseType: "wait",
+        icon: "WAIT",
+        data: { label: "Esperar", nodeKind: "wait", nodeKindLabel: "Esperar", category: "action", delayMinutes: 5 }
+      }
+    ]
+  },
+  {
+    title: "Lógica",
+    items: [
+      {
+        id: "if-else",
+        label: "If/else",
+        description: "Divide o caminho por condição simples.",
+        category: "logic",
+        baseType: "condition",
+        icon: "IF",
+        data: { label: "If/else", nodeKind: "if_else", nodeKindLabel: "If/else", category: "logic", condition: "contém preço" }
+      },
+      {
+        id: "filter",
+        label: "Filtro",
+        description: "Continua apenas quando a regra bater.",
+        category: "logic",
+        baseType: "condition",
+        icon: "FLT",
+        data: { label: "Filtro", nodeKind: "filter", nodeKindLabel: "Filtro", category: "logic", condition: "canal é WhatsApp" }
+      },
+      {
+        id: "route-channel",
+        label: "Roteamento",
+        description: "Escolhe caminho por canal ou origem.",
+        category: "logic",
+        baseType: "condition",
+        icon: "RT",
+        data: { label: "Roteamento por canal", nodeKind: "route_channel", nodeKindLabel: "Roteamento", category: "logic", condition: "origem do lead" }
+      }
+    ]
+  },
+  {
+    title: "Dados",
+    items: [
+      {
+        id: "set-variable",
+        label: "Setar variável",
+        description: "Guarda nome, origem, score ou campo do lead.",
+        category: "data",
+        baseType: "action",
+        icon: "VAR",
+        data: { label: "Setar variável", nodeKind: "set_variable", nodeKindLabel: "Setar variável", category: "data", actionType: "reply_same_channel", variableName: "origem_lead", variableValue: "instagram" }
+      },
+      {
+        id: "json-parser",
+        label: "JSON parser",
+        description: "Lê dados vindos de API ou webhook.",
+        category: "data",
+        baseType: "action",
+        icon: "JSON",
+        data: { label: "JSON parser", nodeKind: "json_parser", nodeKindLabel: "JSON parser", category: "data", actionType: "reply_same_channel", variableName: "payload", variableValue: "{{evento}}" }
+      }
+    ]
+  }
+];
+
+const variableTokens = ["{{nome}}", "{{telefone}}", "{{origem_lead}}", "{{ultima_compra}}", "{{atendente}}"];
 
 const nodeTypeMeta: Record<FlowCanvasNodeType, { label: string; icon: string; tone: string }> = {
   entry: { label: "Entrada", icon: "IN", tone: "entry" },
@@ -216,6 +367,45 @@ function cloneTemplate(template: Template) {
   };
 }
 
+type FlowDraft = {
+  name: string;
+  status: string;
+  nodes: StudioNode[];
+  edges: StudioEdge[];
+  updatedAt: string;
+  version: number;
+};
+
+type FlowSnapshot = Pick<FlowDraft, "nodes" | "edges">;
+
+const draftStorageKey = "klio-flow-studio-draft-v2";
+
+function readLocalDraft(): FlowDraft | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = window.localStorage.getItem(draftStorageKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as FlowDraft;
+    return Array.isArray(parsed.nodes) && Array.isArray(parsed.edges) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function snapshotFlow(nodes: StudioNode[], edges: StudioEdge[]): FlowSnapshot {
+  return {
+    nodes: nodes.map((item) => ({ ...item, data: { ...item.data }, position: { ...item.position } })),
+    edges: edges.map((item) => ({ ...item, data: item.data ? { ...item.data } : undefined }))
+  };
+}
+
+function createNodeFromPalette(item: NodePaletteItem, count: number): StudioNode {
+  const id = `${item.baseType}-${item.id}-${Date.now()}`;
+  const position = { x: 140 + count * 38, y: 130 + count * 30 };
+  return node(id, item.baseType, position.x, position.y, { ...item.data });
+}
+
 function getLinearPath(nodes: StudioNode[], edges: StudioEdge[]) {
   const entry = nodes.find((item) => item.type === "entry");
   if (!entry) return [];
@@ -278,13 +468,21 @@ function toCanvasTrigger(nodes: StudioNode[], edges: StudioEdge[]): VisualAutoma
       position: item.position,
       data: {
         label: item.data.label,
+        nodeKind: item.data.nodeKind,
+        nodeKindLabel: item.data.nodeKindLabel,
+        category: item.data.category,
         channel: item.data.channel,
         triggerType: item.data.triggerType,
         keyword: item.data.keyword,
         message: item.data.message,
+        quickReplies: item.data.quickReplies,
+        mediaType: item.data.mediaType,
+        mediaUrl: item.data.mediaUrl,
         delayMinutes: item.data.delayMinutes,
         condition: item.data.condition,
-        actionType: item.data.actionType
+        actionType: item.data.actionType,
+        variableName: item.data.variableName,
+        variableValue: item.data.variableValue
       }
     })),
     edges: edges.map((item): FlowCanvasEdge => ({
@@ -337,6 +535,18 @@ function nodeSummary(nodeItem: Pick<StudioNode, "type" | "data">) {
   return actionLabel(nodeItem.data.actionType);
 }
 
+function nodeSummaryRich(nodeItem: Pick<StudioNode, "type" | "data">) {
+  if (nodeItem.type === "message") {
+    const media = nodeItem.data.mediaType ? ` · midia: ${nodeItem.data.mediaType}` : "";
+    return `${String(nodeItem.data.message || "Mensagem sem texto")}${media}`;
+  }
+
+  if (nodeItem.data.nodeKind === "set_variable") return `${nodeItem.data.variableName || "variavel"} = ${nodeItem.data.variableValue || "valor"}`;
+  if (nodeItem.data.nodeKind === "json_parser") return `Ler payload em ${nodeItem.data.variableName || "variavel"}`;
+
+  return nodeSummary(nodeItem);
+}
+
 function FlowNodeCard(props: NodeProps<StudioNode>) {
   const meta = nodeTypeMeta[props.type || "message"];
 
@@ -347,10 +557,11 @@ function FlowNodeCard(props: NodeProps<StudioNode>) {
         <span>{meta.icon}</span>
         <div>
           <strong>{props.data.label}</strong>
-          <small>{meta.label}</small>
+          <small>{props.data.nodeKindLabel || meta.label}</small>
         </div>
       </div>
-      <p>{nodeSummary({ type: props.type || "message", data: props.data })}</p>
+      {props.data.category ? <span className={`flow-node-kind flow-node-kind-${props.data.category}`}>{props.data.category}</span> : null}
+      <p>{nodeSummaryRich({ type: props.type || "message", data: props.data })}</p>
       <Handle type="source" position={Position.Right} className="flow-node-handle" />
     </div>
   );
@@ -364,16 +575,48 @@ const nodeTypes = {
   action: FlowNodeCard
 };
 
-function FlowToolbar({ onAdd }: { onAdd: (type: FlowCanvasNodeType) => void }) {
-  const items: FlowCanvasNodeType[] = ["entry", "message", "wait", "condition", "action"];
-
+function FlowToolbar({
+  onAdd,
+  onDuplicate,
+  onUndo,
+  onRedo,
+  canDuplicate,
+  canUndo,
+  canRedo
+}: {
+  onAdd: (item: NodePaletteItem) => void;
+  onDuplicate: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canDuplicate: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
+}) {
   return (
     <div className="flow-canvas-toolbar">
-      {items.map((item) => (
-        <button key={item} type="button" onClick={() => onAdd(item)}>
-          <span>{nodeTypeMeta[item].icon}</span>
-          {nodeTypeMeta[item].label}
+      <div className="flow-toolbar-actions">
+        <button disabled={!canUndo} type="button" onClick={onUndo}>
+          Desfazer
         </button>
+        <button disabled={!canRedo} type="button" onClick={onRedo}>
+          Refazer
+        </button>
+        <button disabled={!canDuplicate} type="button" onClick={onDuplicate}>
+          Duplicar bloco
+        </button>
+      </div>
+      {nodePalette.map((group) => (
+        <div className="flow-toolbar-group" key={group.title}>
+          <strong>{group.title}</strong>
+          <div>
+            {group.items.map((item) => (
+              <button key={item.id} title={item.description} type="button" onClick={() => onAdd(item)}>
+                <span>{item.icon}</span>
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
       ))}
     </div>
   );
@@ -455,10 +698,39 @@ function NodeInspector({
       ) : null}
 
       {nodeItem.type === "message" ? (
-        <label className="flow-field">
-          <span>Mensagem enviada pela Klio</span>
-          <textarea className="textarea flow-message-box" value={nodeItem.data.message || ""} onChange={(event) => onUpdate(nodeItem.id, { message: event.target.value })} />
-        </label>
+        <>
+          <label className="flow-field">
+            <span>Mensagem enviada pela Klio</span>
+            <textarea className="textarea flow-message-box" value={nodeItem.data.message || ""} onChange={(event) => onUpdate(nodeItem.id, { message: event.target.value })} />
+          </label>
+          <div className="flow-variable-row">
+            {variableTokens.map((token) => (
+              <button key={token} type="button" onClick={() => onUpdate(nodeItem.id, { message: `${nodeItem.data.message || ""} ${token}`.trim() })}>
+                {token}
+              </button>
+            ))}
+          </div>
+          <label className="flow-field">
+            <span>Respostas rápidas</span>
+            <input className="input" placeholder="Sim, quero | Falar com equipe" value={nodeItem.data.quickReplies || ""} onChange={(event) => onUpdate(nodeItem.id, { quickReplies: event.target.value })} />
+          </label>
+          <div className="flow-two-columns">
+            <label className="flow-field">
+              <span>Tipo de mídia</span>
+              <select className="select" value={nodeItem.data.mediaType || ""} onChange={(event) => onUpdate(nodeItem.id, { mediaType: event.target.value })}>
+                <option value="">Sem mídia</option>
+                <option value="imagem">Imagem</option>
+                <option value="audio">Áudio</option>
+                <option value="video">Vídeo</option>
+                <option value="documento">Documento</option>
+              </select>
+            </label>
+            <label className="flow-field">
+              <span>URL da mídia</span>
+              <input className="input" placeholder="https://" value={nodeItem.data.mediaUrl || ""} onChange={(event) => onUpdate(nodeItem.id, { mediaUrl: event.target.value })} />
+            </label>
+          </div>
+        </>
       ) : null}
 
       {nodeItem.type === "wait" ? (
@@ -495,6 +767,18 @@ function NodeInspector({
             <span>Mensagem de continuação</span>
             <textarea className="textarea flow-message-box-small" value={nodeItem.data.message || ""} onChange={(event) => onUpdate(nodeItem.id, { message: event.target.value })} />
           </label>
+          {nodeItem.data.category === "data" ? (
+            <div className="flow-two-columns">
+              <label className="flow-field">
+                <span>Variável</span>
+                <input className="input" value={nodeItem.data.variableName || ""} onChange={(event) => onUpdate(nodeItem.id, { variableName: event.target.value })} />
+              </label>
+              <label className="flow-field">
+                <span>Valor</span>
+                <input className="input" value={nodeItem.data.variableValue || ""} onChange={(event) => onUpdate(nodeItem.id, { variableValue: event.target.value })} />
+              </label>
+            </div>
+          ) : null}
         </>
       ) : null}
     </section>
@@ -502,20 +786,25 @@ function NodeInspector({
 }
 
 export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
-  const initialTemplate = cloneTemplate(templates[0]);
+  const bootDraft = useMemo(() => readLocalDraft(), []);
+  const initialTemplate = useMemo(() => cloneTemplate(templates[0]), []);
   const [automations, setAutomations] = useState(initialAutomations);
-  const [nodes, setNodes, onNodesChange] = useNodesState<StudioNode>(initialTemplate.nodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<StudioEdge>(initialTemplate.edges);
+  const [nodes, setNodes, onNodesChange] = useNodesState<StudioNode>(bootDraft?.nodes || initialTemplate.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<StudioEdge>(bootDraft?.edges || initialTemplate.edges);
   const [name, setName] = useState("Qualificação automática de lead");
-  const [status, setStatus] = useState("Ativa");
+  const [status, setStatus] = useState(bootDraft?.status || "Ativa");
   const [activeTemplate, setActiveTemplate] = useState("lead");
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(nodes[0]?.id || null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>((bootDraft?.nodes || initialTemplate.nodes)[0]?.id || null);
   const [statusText, setStatusText] = useState("");
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testingId, setTestingId] = useState(initialAutomations[0]?.id || "");
   const [testRecipient, setTestRecipient] = useState("");
   const [testContactName, setTestContactName] = useState("Cliente teste");
+  const [history, setHistory] = useState<FlowSnapshot[]>([]);
+  const [future, setFuture] = useState<FlowSnapshot[]>([]);
+  const [draftVersion, setDraftVersion] = useState(bootDraft?.version || 1);
+  const [autosaveLabel, setAutosaveLabel] = useState(bootDraft ? "Rascunho local restaurado" : "Rascunho local pronto");
 
   const selectedNode = useMemo(() => nodes.find((item) => item.id === selectedNodeId) || null, [nodes, selectedNodeId]);
   const validation = useMemo(() => validateFlow(nodes, edges), [edges, nodes]);
@@ -536,7 +825,57 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
     return triggerLabel(selectedAutomationDetails?.triggerType, selectedAutomationDetails?.keyword);
   }, [selectedAutomation, selectedAutomationDetails]);
 
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      const nextVersion = draftVersion + 1;
+      const updatedAt = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      window.localStorage.setItem(
+        draftStorageKey,
+        JSON.stringify({
+          name,
+          status,
+          nodes,
+          edges,
+          updatedAt,
+          version: nextVersion
+        })
+      );
+      setDraftVersion(nextVersion);
+      setAutosaveLabel(`Rascunho local salvo às ${updatedAt}`);
+    }, 700);
+
+    return () => window.clearTimeout(timeout);
+  }, [edges, name, nodes, status]);
+
+  function rememberCurrent() {
+    setHistory((current) => [...current.slice(-19), snapshotFlow(nodes, edges)]);
+    setFuture([]);
+  }
+
+  function undoFlow() {
+    const previous = history[history.length - 1];
+    if (!previous) return;
+    setFuture((current) => [snapshotFlow(nodes, edges), ...current.slice(0, 19)]);
+    setHistory((current) => current.slice(0, -1));
+    setNodes(previous.nodes);
+    setEdges(previous.edges);
+    setSelectedNodeId(previous.nodes[0]?.id || null);
+    setStatusText("Alteração desfeita.");
+  }
+
+  function redoFlow() {
+    const next = future[0];
+    if (!next) return;
+    setHistory((current) => [...current.slice(-19), snapshotFlow(nodes, edges)]);
+    setFuture((current) => current.slice(1));
+    setNodes(next.nodes);
+    setEdges(next.edges);
+    setSelectedNodeId(next.nodes[0]?.id || null);
+    setStatusText("Alteração refeita.");
+  }
+
   function applyTemplate(template: Template) {
+    rememberCurrent();
     const next = cloneTemplate(template);
     setActiveTemplate(template.id);
     setNodes(next.nodes);
@@ -548,6 +887,7 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
   }
 
   function handleConnect(connection: Connection) {
+    rememberCurrent();
     setEdges((current) => addEdge({ ...connection, type: "smoothstep", animated: true, className: "flow-studio-edge" }, current));
   }
 
@@ -566,7 +906,45 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
     setSelectedNodeId(id);
   }
 
+  function handleAddPaletteNode(item: NodePaletteItem) {
+    rememberCurrent();
+    const nextNode = createNodeFromPalette(item, nodes.length);
+    setNodes((current) => [...current, nextNode]);
+    setSelectedNodeId(nextNode.id);
+    setStatusText(`Bloco adicionado: ${item.label}.`);
+  }
+
+  function duplicateSelectedNode() {
+    const selected = nodes.find((item) => item.id === selectedNodeId);
+    if (!selected) return;
+
+    rememberCurrent();
+    const duplicateId = `${selected.type}-copy-${Date.now()}`;
+    const duplicated: StudioNode = {
+      ...selected,
+      id: duplicateId,
+      selected: true,
+      position: { x: selected.position.x + 52, y: selected.position.y + 52 },
+      data: { ...selected.data, label: `${selected.data.label} cópia` }
+    };
+    setNodes((current) => [...current.map((item) => ({ ...item, selected: false })), duplicated]);
+    setSelectedNodeId(duplicateId);
+    setStatusText("Bloco duplicado. Conecte a cópia no caminho desejado.");
+  }
+
+  function simulateCurrentFlow() {
+    const readable = previewSteps.map((item) => item.data.nodeKindLabel || nodeTypeMeta[item.type || "message"].label).join(" → ");
+
+    if (!validation.valid) {
+      setStatusText(`Simulação em rascunho: ${readable || "adicione blocos"} · ajuste os alertas antes de publicar.`);
+      return;
+    }
+
+    setStatusText(`Simulação local aprovada: ${readable}. Nada foi enviado ao cliente.`);
+  }
+
   function updateNodeData(id: string, data: Partial<FlowNodeData>) {
+    rememberCurrent();
     setNodes((current) => current.map((item) => (item.id === id ? { ...item, data: { ...item.data, ...data } } : item)));
   }
 
@@ -665,6 +1043,7 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
             <p>Arraste blocos, conecte etapas e publique um fluxo linear validado para WhatsApp, Instagram e outros canais.</p>
           </div>
           <div className="flow-studio-actions">
+            <span className="flow-autosave-chip">v{draftVersion} · {autosaveLabel}</span>
             <input className="input" value={name} onChange={(event) => setName(event.target.value)} aria-label="Nome do fluxo" />
             <select className="select" value={status} onChange={(event) => setStatus(event.target.value)}>
               <option value="Ativa">Ativa</option>
@@ -683,7 +1062,15 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
         </div>
 
         <div className="flow-canvas-shell">
-          <FlowToolbar onAdd={handleAddNode} />
+          <FlowToolbar
+            canDuplicate={Boolean(selectedNode)}
+            canRedo={future.length > 0}
+            canUndo={history.length > 0}
+            onAdd={handleAddPaletteNode}
+            onDuplicate={duplicateSelectedNode}
+            onRedo={redoFlow}
+            onUndo={undoFlow}
+          />
           <ReactFlow<StudioNode, StudioEdge>
             nodes={nodes}
             edges={edges}
@@ -705,6 +1092,9 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
           <FlowValidationPanel issues={validation.issues} valid={validation.valid} />
           <div className="flow-actions">
             {statusText ? <p className="flow-status-message">{statusText}</p> : null}
+            <button className="btn btn-secondary" onClick={simulateCurrentFlow} type="button">
+              Simular sem publicar
+            </button>
             <button className="btn btn-secondary" disabled={saving} type="submit" value="Rascunho">
               Salvar rascunho
             </button>
@@ -740,6 +1130,16 @@ export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
                   <div className="flow-chat-bubble flow-chat-bubble-bot" key={item.id}>
                     <span>{item.type === "action" ? "Ação" : "Klio"}</span>
                     <p>{item.type === "action" ? actionLabel(item.data.actionType) : item.data.message || "Mensagem sem texto"}</p>
+                    {item.type === "message" && item.data.mediaType ? <small>Mídia: {item.data.mediaType}</small> : null}
+                    {item.type === "message" && item.data.quickReplies ? (
+                      <div className="flow-quick-replies">
+                        {item.data.quickReplies.split(/[|,]/).map((reply) => (
+                          <button key={reply.trim()} type="button">
+                            {reply.trim()}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 );
               })}
