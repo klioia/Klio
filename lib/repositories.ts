@@ -40,6 +40,8 @@ export type ExecutionRecord = {
   userId?: string;
   automationId: string;
   automationName: string;
+  automationTrigger?: string;
+  automationMessage?: string;
   channel: string;
   contactName: string;
   recipient: string;
@@ -553,17 +555,38 @@ export async function listExecutions(userId?: string) {
     const prisma = getPrismaClient();
     const items = await prisma.execution.findMany({
       where: userId ? { userId } : undefined,
+      include: {
+        automation: {
+          select: {
+            trigger: true,
+            message: true
+          }
+        }
+      },
       orderBy: { createdAt: "desc" }
     });
 
-    return (items as Array<{ createdAt: Date } & Record<string, unknown>>).map((item) => ({
+    return (items as Array<{ createdAt: Date; automation?: { trigger?: string; message?: string } } & Record<string, unknown>>).map((item) => ({
       ...item,
+      automationTrigger: item.automation?.trigger,
+      automationMessage: item.automation?.message,
+      automation: undefined,
       createdAt: item.createdAt.toISOString()
     }));
   }
 
   const items = await readCollection<ExecutionRecord[]>("executions");
-  return userId ? items.filter((item) => item.userId === userId) : items;
+  const automations = await readCollection<AutomationRecord[]>("automations");
+  const enriched = items.map((item) => {
+    const automation = automations.find((candidate) => candidate.id === item.automationId);
+    return {
+      ...item,
+      automationTrigger: automation?.trigger,
+      automationMessage: automation?.message
+    };
+  });
+
+  return userId ? enriched.filter((item) => item.userId === userId) : enriched;
 }
 
 export async function createExecution(input: ExecutionRecord) {

@@ -187,3 +187,92 @@ export function describeFlow(trigger: string) {
 
   return extras.length ? extras.join(" - ") : "Fluxo simples";
 }
+
+export type ExecutionDebugStep = {
+  id: string;
+  label: string;
+  type: string;
+  status: "success" | "waiting" | "error" | "skipped";
+  input: string;
+  output: string;
+  durationMs: number;
+};
+
+function nodeDebugLabel(type: FlowCanvasNodeType) {
+  const labels: Record<FlowCanvasNodeType, string> = {
+    entry: "Entrada",
+    message: "Mensagem",
+    wait: "Espera",
+    condition: "Condição",
+    action: "Ação"
+  };
+
+  return labels[type];
+}
+
+export function buildExecutionDebugSteps(input: {
+  trigger?: string;
+  preview: string;
+  status: string;
+  channel: string;
+  contactName: string;
+}) {
+  const visual = input.trigger ? decodeVisualTrigger(input.trigger) : null;
+  const hasError = input.status.includes("error") || input.status.includes("failed");
+
+  if (!visual) {
+    return [
+      {
+        id: "legacy-entry",
+        label: "Evento recebido",
+        type: "Entrada",
+        status: "success" as const,
+        input: `${input.channel} · ${input.contactName}`,
+        output: "Fluxo simples localizado",
+        durationMs: 42
+      },
+      {
+        id: "legacy-message",
+        label: "Mensagem enviada",
+        type: "Mensagem",
+        status: hasError ? ("error" as const) : ("success" as const),
+        input: "Template principal",
+        output: input.preview,
+        durationMs: hasError ? 980 : 241
+      }
+    ];
+  }
+
+  const path = visual.linearPath.length ? visual.linearPath : visual.nodes.map((node) => node.id);
+  const nodes = path.map((id) => visual.nodes.find((node) => node.id === id)).filter((node): node is FlowCanvasNode => Boolean(node));
+
+  return nodes.map((node, index) => {
+    const isLast = index === nodes.length - 1;
+    const status = hasError && isLast ? "error" : node.type === "wait" ? "waiting" : "success";
+    const label = node.data.nodeKindLabel || node.data.label || nodeDebugLabel(node.type);
+
+    return {
+      id: node.id,
+      label,
+      type: nodeDebugLabel(node.type),
+      status,
+      input:
+        node.type === "entry"
+          ? `${node.data.channel || input.channel} · ${node.data.keyword || "nova mensagem"}`
+          : node.type === "condition"
+            ? node.data.condition || "regra sem condição"
+            : "Saída do bloco anterior",
+      output:
+        node.type === "message"
+          ? node.data.message || input.preview
+          : node.type === "wait"
+            ? `${node.data.delayMinutes || 0} min de espera`
+            : node.type === "action"
+              ? node.data.actionType || "ação executada"
+              : status === "error"
+                ? "Falha no provedor ou configuração"
+                : "Processado",
+      durationMs: 70 + index * 86
+    };
+  });
+}
