@@ -3,10 +3,10 @@
 import { motion } from "framer-motion";
 
 const avatars = [
-  { label: "Larissa", initials: "LM", className: "avatar-gradient-1" },
-  { label: "Rafael", initials: "RS", className: "avatar-gradient-2" },
-  { label: "Bianca", initials: "BC", className: "avatar-gradient-3" },
-  { label: "Kaique", initials: "KB", className: "avatar-gradient-4" }
+  { label: "WhatsApp", initials: "WA", className: "avatar-gradient-1" },
+  { label: "Instagram", initials: "IG", className: "avatar-gradient-2" },
+  { label: "Equipe", initials: "EQ", className: "avatar-gradient-3" },
+  { label: "CRM", initials: "CRM", className: "avatar-gradient-4" }
 ];
 
 export function Hero() {
@@ -26,20 +26,20 @@ export function Hero() {
             transition={{ delay: 0.1, duration: 0.5 }}
           >
             <span className="hero-badge-dot" />
-            Novo: IA conversacional integrada →
+            Novo: Flow Studio visual com IA integrada →
           </motion.span>
 
           <h1 className="hero-display">
-            Automatize <span className="hero-gradient">conversas</span>. Escale{" "}
-            <span className="hero-gradient">sem contratar</span>.
+            Automatize <span className="hero-gradient">atendimento</span>. Venda mais{" "}
+            <span className="hero-gradient">sem bagunçar a operação</span>.
           </h1>
           <p className="hero-subtitle">
-            Centralize WhatsApp, Instagram, Messenger e Telegram em uma operação mais rápida, elegante e previsível.
+            A Klio Flow centraliza mensagens, qualifica leads, roda fluxos visuais e entrega conversas para humanos no momento certo.
           </p>
 
           <div className="cta-row hero-actions">
             <motion.a whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="btn btn-primary hero-primary-cta" href="/register">
-              Começar grátis
+              Começar agora
             </motion.a>
             <motion.a whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} className="btn btn-secondary hero-secondary-cta" href="#automacoes">
               Ver demo
@@ -47,9 +47,9 @@ export function Hero() {
           </div>
 
           <div className="hero-proof-row">
-            <span className="mini">IA aplicada ao atendimento</span>
-            <span className="mini">Fluxos multicanal</span>
-            <span className="mini">Escala sem inflar equipe</span>
+            <span className="mini">WhatsApp e Instagram</span>
+            <span className="mini">Fluxos visuais</span>
+            <span className="mini">Debug por execução</span>
           </div>
 
           <div className="hero-social-proof">
@@ -61,8 +61,8 @@ export function Hero() {
               ))}
             </div>
             <div>
-              <strong>+500 empresas já automatizam com a Klio</strong>
-              <div className="hero-stars">★★★★★</div>
+              <strong>Produto focado em vendas, atendimento e repasse humano</strong>
+              <div className="hero-stars">Pronto para operar com dados reais, não planilhas soltas.</div>
             </div>
           </div>
         </motion.div>
@@ -93,7 +93,7 @@ export function Hero() {
               <article className="hero-panel hero-panel-large">
                 <span className="mini">Entrada</span>
                 <strong>Mensagem recebida no Instagram</strong>
-                <p className="mini">Cliente pediu orçamento e a Klio respondeu em segundos.</p>
+                <p className="mini">Lead pediu orçamento e a Klio iniciou a triagem automaticamente.</p>
               </article>
               <article className="hero-panel">
                 <span className="mini">Bot</span>
@@ -108,15 +108,15 @@ export function Hero() {
               <article className="hero-panel hero-panel-wide">
                 <div className="hero-mini-metrics">
                   <div>
-                    <span className="mini">tempo de resposta</span>
+                    <span className="mini">demo · resposta</span>
                     <strong>12s</strong>
                   </div>
                   <div>
-                    <span className="mini">leads qualificados hoje</span>
+                    <span className="mini">demo · leads</span>
                     <strong>84</strong>
                   </div>
                   <div>
-                    <span className="mini">fluxos em execução</span>
+                    <span className="mini">demo · fluxos</span>
                     <strong>42</strong>
                   </div>
                 </div>

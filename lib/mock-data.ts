@@ -149,7 +149,7 @@ export const plans = [
     billingMonthly: "Sem desconto anual",
     audience: "Para quem está começando",
     description: "Estrutura essencial para sair do atendimento manual e ativar os primeiros fluxos.",
-    checkoutEnabled: true,
+    checkoutEnabled: false,
     ctaLabel: "Escolher Start",
     features: [
       "1 canal: WhatsApp ou Instagram",
@@ -174,7 +174,7 @@ export const plans = [
     billingMonthly: "15% OFF anual · 10% OFF parcelado",
     audience: "Para pequenos negócios",
     description: "Melhor ponto para operar em dois canais com mais contexto e mais consistência.",
-    checkoutEnabled: true,
+    checkoutEnabled: false,
     ctaLabel: "Escolher Starter",
     features: [
       "WhatsApp + Instagram",
@@ -199,7 +199,7 @@ export const plans = [
     billingMonthly: "20% OFF anual · 10% OFF parcelado",
     audience: "Para empresas em crescimento",
     description: "O plano mais forte para equipes que querem escala, campanhas e visão real da operação.",
-    checkoutEnabled: true,
+    checkoutEnabled: false,
     ctaLabel: "Assinar Scale",
     features: [
       "Todos os canais principais",

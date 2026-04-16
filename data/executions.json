@@ -44,7 +44,7 @@
     "contactName": "Carlos",
     "recipient": "5511777777777",
     "status": "mock_sent",
-    "preview": "Oi Carlos, posso te mandar o checkout Pix agora?",
+    "preview": "Oi Carlos, vi seu interesse e posso te ajudar agora. Você quer seguir pelo WhatsApp?",
     "createdAt": "2026-04-07T16:04:02.766Z"
   },
   {
@@ -56,7 +56,7 @@
     "contactName": "Carlos",
     "recipient": "5511888888888",
     "status": "mock_sent",
-    "preview": "Oi Carlos, posso te mandar o checkout Pix agora?",
+    "preview": "Oi Carlos, vi seu interesse e posso te ajudar agora. Você quer seguir pelo WhatsApp?",
     "createdAt": "2026-04-07T16:02:41.119Z"
   },
   {
@@ -68,7 +68,7 @@
     "contactName": "Marina",
     "recipient": "5511999999999",
     "status": "mock_sent",
-    "preview": "Oi Marina, posso te mandar o checkout Pix agora?",
+    "preview": "Oi Marina, vi seu interesse e posso te ajudar agora. Você quer seguir pelo WhatsApp?",
     "createdAt": "2026-04-07T15:58:38.295Z"
   },
   {
@@ -80,7 +80,7 @@
     "contactName": "Marina",
     "recipient": "5511999999999",
     "status": "mock_sent",
-    "preview": "Oi Marina, posso te mandar o checkout Pix agora?",
+    "preview": "Oi Marina, vi seu interesse e posso te ajudar agora. Você quer seguir pelo WhatsApp?",
     "createdAt": "2026-04-07T15:06:45.988Z"
   },
   {
@@ -92,7 +92,7 @@
     "contactName": "Marina",
     "recipient": "5511999999999",
     "status": "mock_sent",
-    "preview": "Oi Marina, posso te mandar o checkout Pix agora?",
+    "preview": "Oi Marina, vi seu interesse e posso te ajudar agora. Você quer seguir pelo WhatsApp?",
     "createdAt": "2026-04-07T15:00:00.000Z"
   }
 ]

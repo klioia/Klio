@@ -5,8 +5,17 @@ import { FlowBuilder } from "@/components/flow-builder";
 import { ProcessJobsButton } from "@/components/process-jobs-button";
 import { humanizeTrigger } from "@/lib/automation-utils";
 import { requireSession } from "@/lib/auth";
-import { dashboardStats, inbox } from "@/lib/mock-data";
-import { AutomationRecord, ScheduledJobRecord, getIntegrations, listAutomations, listScheduledJobs } from "@/lib/repositories";
+import {
+  AutomationRecord,
+  ExecutionRecord,
+  LeadRecord,
+  ScheduledJobRecord,
+  getIntegrations,
+  listAutomations,
+  listExecutions,
+  listLeads,
+  listScheduledJobs
+} from "@/lib/repositories";
 
 function channelState(connected: boolean, label: string) {
   return {
@@ -20,6 +29,8 @@ export default async function DashboardPage() {
   const session = await requireSession();
   const automations = (await listAutomations(session.id)) as AutomationRecord[];
   const scheduledJobs = (await listScheduledJobs(session.id)) as ScheduledJobRecord[];
+  const leads = (await listLeads(session.id)) as LeadRecord[];
+  const executions = (await listExecutions(session.id)) as ExecutionRecord[];
   const integrations = await getIntegrations(session.tenantId);
 
   const pendingJobs = scheduledJobs.filter((job) => job.status === "pending").length;
@@ -30,6 +41,33 @@ export default async function DashboardPage() {
   ].filter(Boolean).length;
   const coverage = Math.round((integrationsReady / 2) * 100);
   const automationReadiness = automations.length ? Math.round((activeAutomations / automations.length) * 100) : 0;
+  const successfulExecutions = executions.filter((item) => !item.status.includes("error") && !item.status.includes("failed")).length;
+  const responseRate = executions.length ? Math.round((successfulExecutions / executions.length) * 100) : 0;
+  const qualifiedLeads = leads.filter((lead) => /qualifica|proposta|negocia|fech/i.test(lead.stage)).length;
+  const inboxItems = leads.slice(0, 4);
+
+  const dashboardMetrics = [
+    {
+      label: "Mensagens processadas",
+      value: executions.length ? String(executions.length) : "0",
+      trend: executions.length ? `${responseRate}% sem erro crítico` : "Rode um teste para gerar histórico"
+    },
+    {
+      label: "Taxa de resposta",
+      value: executions.length ? `${responseRate}%` : "—",
+      trend: executions.length ? "Baseada nas execuções registradas" : "Aguardando primeiras execuções"
+    },
+    {
+      label: "Leads qualificados",
+      value: String(qualifiedLeads),
+      trend: leads.length ? `${leads.length} contatos no CRM` : "Conecte canais para capturar contatos"
+    },
+    {
+      label: "Fluxos ativos",
+      value: String(activeAutomations),
+      trend: automations.length ? `${automations.length} fluxos na biblioteca` : "Crie o primeiro fluxo visual"
+    }
+  ];
 
   const channelStates = [
     channelState(Boolean(integrations.whatsapp?.connected), "WhatsApp"),
@@ -146,7 +184,7 @@ export default async function DashboardPage() {
       </section>
 
       <section className="overview-strip">
-        {dashboardStats.map((item) => (
+        {dashboardMetrics.map((item) => (
           <article className="overview-stat" key={item.label}>
             <span>{item.label}</span>
             <strong>{item.value}</strong>
@@ -166,16 +204,23 @@ export default async function DashboardPage() {
             <Link href="/leads">Ver fila completa</Link>
           </div>
           <div className="live-feed-list">
-            {inbox.map((item) => (
+            {inboxItems.length ? (
+              inboxItems.map((item) => (
               <div className="live-feed-item" key={item.id}>
                 <div>
-                  <strong>{item.contact}</strong>
-                  <div className="mini">{item.origin}</div>
-                  <p>{item.text}</p>
+                  <strong>{item.name}</strong>
+                  <div className="mini">{item.channel}</div>
+                  <p>{item.lastMessage}</p>
                 </div>
-                <span className={item.status === "Novo" ? "tag tag-success" : "tag tag-warning"}>{item.status}</span>
+                <span className="tag tag-success">{item.stage}</span>
               </div>
-            ))}
+              ))
+            ) : (
+              <div className="builder-empty-state">
+                <strong>Inbox aguardando conversas</strong>
+                <p className="mini">Assim que WhatsApp ou Instagram receberem contatos, a fila aparecerá aqui.</p>
+              </div>
+            )}
           </div>
         </section>
 

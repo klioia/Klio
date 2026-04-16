@@ -33,7 +33,7 @@ export function Topbar({ compactAuth = false }: TopbarProps) {
               Entrar
             </a>
             <a className="btn btn-primary topbar-cta" href="/register">
-              Começar grátis
+              Começar agora
             </a>
           </div>
         )}

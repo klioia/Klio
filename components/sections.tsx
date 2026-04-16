@@ -33,9 +33,7 @@ function Counter({ value, prefix = "", suffix = "", suffixAfterSpace = "" }: Cou
           const progress = Math.min((now - start) / duration, 1);
           const eased = 1 - Math.pow(1 - progress, 3);
           setCurrent(Math.round(value * eased));
-          if (progress < 1) {
-            frame = requestAnimationFrame(tick);
-          }
+          if (progress < 1) frame = requestAnimationFrame(tick);
         };
 
         frame = requestAnimationFrame(tick);
@@ -75,7 +73,10 @@ export function FeatureSection() {
       <div className="shell">
         <LandingReveal>
           <span className="eyebrow">Recursos principais</span>
-          <h2 className="section-title">Tudo o que você precisa para operar sem ruído.</h2>
+          <h2 className="section-title">Menos resposta manual. Mais processo visível.</h2>
+          <p className="muted pricing-intro">
+            A Klio Flow combina automação de mensagens, CRM leve, integrações e debug em uma experiência simples para equipes comerciais.
+          </p>
         </LandingReveal>
 
         <div className="feature-grid" style={{ marginTop: 28 }}>
@@ -101,7 +102,10 @@ export function AutomationSection() {
         <LandingReveal>
           <div>
             <span className="eyebrow">Como funciona</span>
-            <h2 className="section-title">A Klio responde, organiza e entrega o contato na hora certa.</h2>
+            <h2 className="section-title">Do primeiro contato ao repasse humano, tudo vira fluxo.</h2>
+            <p className="muted pricing-intro">
+              O cliente escreve, a Klio responde, qualifica e mostra para sua equipe exatamente o que aconteceu.
+            </p>
           </div>
         </LandingReveal>
 
@@ -167,7 +171,9 @@ export function PricingSection() {
           billing:
             billing === "monthly"
               ? plan.billingMonthly
-              : `${Math.round(plan.annualDiscount * 100)}% OFF anual · ${plan.billingMonthly}`
+              : plan.annualDiscount
+                ? `${Math.round(plan.annualDiscount * 100)}% OFF anual · ${plan.billingMonthly}`
+                : plan.billingMonthly
         };
       }),
     [billing]
@@ -178,8 +184,8 @@ export function PricingSection() {
       <div className="shell">
         <LandingReveal>
           <span className="eyebrow">Planos Klio</span>
-          <h2 className="section-title">Comece pequeno. Escale com uma operação muito mais forte.</h2>
-          <p className="muted pricing-intro">Escolha o ritmo ideal para o seu momento e evolua sem trocar de plataforma.</p>
+          <h2 className="section-title">Planos claros para começar, crescer e escalar atendimento.</h2>
+          <p className="muted pricing-intro">Todos os planos são voltados para automação conversacional, CRM leve e melhoria da operação comercial.</p>
         </LandingReveal>
 
         <div className="pricing-toggle">
@@ -207,7 +213,7 @@ export function PricingSection() {
                   </div>
                   <div className="pricing-badge-stack">
                     <span className={`pricing-badge${plan.highlight ? " pricing-badge-featured" : ""}`}>
-                      {plan.highlight ? "Mais escolhido" : plan.badge}
+                      {plan.highlight ? "Mais recomendado" : plan.badge}
                     </span>
                     {plan.highlight ? <span className="pricing-badge pricing-badge-muted">Melhor custo-benefício</span> : null}
                   </div>
@@ -226,10 +232,10 @@ export function PricingSection() {
                     </div>
                   ))}
                 </div>
-                {plan.freeTrial ? <p className="mini pricing-note">Teste grátis por 7 dias</p> : null}
+                {plan.freeTrial ? <p className="mini pricing-note">Comece com configuração assistida</p> : null}
                 <div className="cta-row" style={{ marginTop: 18 }}>
                   {plan.id === "enterprise" ? (
-                    <a className="btn btn-secondary" href="#">
+                    <a className="btn btn-secondary" href="/register">
                       Falar com vendas
                     </a>
                   ) : (
@@ -252,8 +258,11 @@ export function ResultsSection() {
     <section className="section" id="impacto">
       <div className="shell">
         <LandingReveal>
-          <span className="eyebrow">Impacto</span>
-          <h2 className="section-title">Mais velocidade na resposta. Mais controle para escalar.</h2>
+          <span className="eyebrow">Impacto esperado</span>
+          <h2 className="section-title">Indicadores que uma operação automatizada precisa perseguir.</h2>
+          <p className="muted pricing-intro">
+            Estes são benchmarks operacionais usados para orientar configuração e medir evolução. No app, os números passam a vir das suas execuções reais.
+          </p>
         </LandingReveal>
 
         <div className="grid-4" style={{ marginTop: 24 }}>
@@ -289,9 +298,9 @@ export function FinalCtaSection() {
         <LandingReveal>
           <section className="card panel final-cta">
             <span className="eyebrow">Pronta para crescer</span>
-            <h2 className="section-title">Automatize o atendimento agora e escale com segurança.</h2>
+            <h2 className="section-title">Transforme mensagens soltas em uma operação previsível.</h2>
             <p className="muted final-cta-copy">
-              Sem cartão de crédito. Configure em menos de 5 minutos e comece a responder com IA.
+              Configure fluxos, acompanhe execuções e organize leads sem depender de planilhas ou resposta manual o dia inteiro.
             </p>
             <div className="cta-row" style={{ marginTop: 24 }}>
               <a className="btn btn-primary" href="/register">

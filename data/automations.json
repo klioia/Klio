@@ -6,7 +6,7 @@
     "channel": "multi",
     "trigger": "{\"triggerType\":\"keyword\",\"keyword\":\"quero\",\"actionType\":\"handoff_whatsapp\",\"secondMessage\":\"Se quiser, eu posso continuar aqui e te mostrar o melhor plano da Klio.\",\"delayMinutes\":10}",
     "status": "Ativa",
-    "message": "Oi {{nome}}, posso te mandar o checkout Pix agora?"
+    "message": "Oi {{nome}}, vi seu interesse e posso te ajudar agora. Você quer seguir pelo WhatsApp?"
   },
   {
     "id": "auto-02",

@@ -2,9 +2,10 @@
   {
     "id": "lead-1",
     "tenantId": "tenant-1",
+    "userId": "user-1",
     "name": "Marina Costa",
     "channel": "WhatsApp",
-    "stage": "Qualificacao",
+    "stage": "Qualificação",
     "email": "marina@clinica.com",
     "phone": "+5511999991111",
     "lastMessage": "Oi, quero saber como funciona para minha clinica.",
@@ -13,9 +14,10 @@
   {
     "id": "lead-2",
     "tenantId": "tenant-1",
+    "userId": "user-1",
     "name": "Studio Alma",
     "channel": "Instagram",
-    "stage": "Checkout",
+    "stage": "Proposta",
     "email": "contato@studioalma.com",
     "phone": "+5511988882222",
     "lastMessage": "Vi o reels e quero automatizar meu atendimento.",

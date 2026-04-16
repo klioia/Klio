@@ -38,6 +38,33 @@ const navGroups = [
   }
 ];
 
+const productNavGroups = [
+  {
+    label: "Operação",
+    items: [
+      { href: "/dashboard", label: "Overview", description: "Visão geral da operação", icon: "grid" },
+      { href: "/inbox", label: "Inbox", description: "Atendimento e repasse humano", icon: "inbox" },
+      { href: "/leads", label: "CRM", description: "Contatos, tags e funil", icon: "users" },
+      { href: "/automations", label: "Flow Studio", description: "Builder visual de fluxos", icon: "workflow" }
+    ]
+  },
+  {
+    label: "Execução",
+    items: [
+      { href: "/executions", label: "Execuções", description: "Debug, logs e replay", icon: "pulse" },
+      { href: "/scheduled", label: "Agendados", description: "Próximas etapas da fila", icon: "clock" },
+      { href: "/analytics", label: "Analytics", description: "Resposta, conversão e gargalos", icon: "chart" }
+    ]
+  },
+  {
+    label: "Configuração",
+    items: [
+      { href: "/integrations", label: "Integrações", description: "Canais e credenciais", icon: "plug" },
+      { href: "/settings", label: "Configurações", description: "Workspace, equipe e segurança", icon: "settings" }
+    ]
+  }
+];
+
 function WorkspaceIcon({ name }: { name: string }) {
   switch (name) {
     case "grid":
@@ -61,6 +88,13 @@ function WorkspaceIcon({ name }: { name: string }) {
           <path d="M8.5 6.75h3a2 2 0 0 1 2 2v2.75M8.5 13.25h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       );
+    case "inbox":
+      return (
+        <svg viewBox="0 0 20 20" fill="none">
+          <path d="M4 5.5h12l-1 8.5H5L4 5.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M6.5 11.5h1.75l.9 1.25h1.7l.9-1.25h1.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
     case "pulse":
       return (
         <svg viewBox="0 0 20 20" fill="none">
@@ -78,6 +112,20 @@ function WorkspaceIcon({ name }: { name: string }) {
       return (
         <svg viewBox="0 0 20 20" fill="none">
           <path d="M10.625 2.75 5.75 10h3.25l-.625 7.25L13.75 10H10.5l.125-7.25Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "chart":
+      return (
+        <svg viewBox="0 0 20 20" fill="none">
+          <path d="M4.25 15.5V4.5M4.25 15.5h11.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M7.25 12.5v-3M10 12.5v-6M12.75 12.5v-4.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      );
+    case "settings":
+      return (
+        <svg viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M10 3.5v2M10 14.5v2M4.37 6.25l1.73 1M13.9 12.75l1.73 1M4.37 13.75l1.73-1M13.9 7.25l1.73-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       );
     default:
@@ -113,8 +161,8 @@ export function AppShell({ userName, title, description, children }: AppShellPro
             </p>
             <div className="workspace-status-list">
               <div className="workspace-status-row">
-                <span>Disponibilidade</span>
-                <strong>99,9%</strong>
+                <span>Monitoramento</span>
+                <strong>Ativo</strong>
               </div>
               <div className="workspace-status-row">
                 <span>Camada ativa</span>
@@ -128,7 +176,7 @@ export function AppShell({ userName, title, description, children }: AppShellPro
           </div>
 
           <nav className="workspace-nav">
-            {navGroups.map((group) => (
+            {productNavGroups.map((group) => (
               <div className="workspace-nav-group" key={group.label}>
                 <div className="workspace-nav-label">{group.label}</div>
                 <div className="workspace-nav-list">

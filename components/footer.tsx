@@ -10,19 +10,19 @@ const footerColumns = [
     ]
   },
   {
-    title: "Empresa",
+    title: "Operação",
     links: [
-      { label: "Sobre", href: "#" },
-      { label: "Blog", href: "#" },
-      { label: "Carreiras", href: "#" }
+      { label: "Flow Studio", href: "/automations" },
+      { label: "Execuções", href: "/executions" },
+      { label: "Integrações", href: "/integrations" }
     ]
   },
   {
     title: "Suporte",
     links: [
-      { label: "Docs", href: "#" },
       { label: "Status", href: "#" },
-      { label: "Contato", href: "#" }
+      { label: "Contato", href: "https://instagram.com/klioflow" },
+      { label: "Privacidade", href: "/privacy" }
     ]
   }
 ];
@@ -39,7 +39,7 @@ export function Footer() {
       <div className="shell footer-inner">
         <div className="footer-brand">
           <Brand compact />
-          <p className="mini">Automação conversacional para equipes que querem responder mais rápido e vender com mais consistência.</p>
+          <p className="mini">Automação conversacional para equipes que querem responder melhor, vender com contexto e operar sem bagunça.</p>
           <div className="footer-social">
             {socialLinks.map((link) => (
               <a key={link.label} href={link.href} target={link.href.startsWith("http") ? "_blank" : undefined} rel="noreferrer">
