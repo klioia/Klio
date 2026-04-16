@@ -3068,6 +3068,123 @@ button, input, select, textarea { font: inherit; }
   color: #9ba5d3;
   font-size: 12px;
 }
+.flow-workbench {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.82fr) minmax(0, 1.45fr) minmax(320px, 0.9fr);
+  gap: 22px;
+  align-items: start;
+}
+.flow-workbench-rail,
+.flow-workbench-main,
+.flow-studio-side {
+  min-width: 0;
+}
+.flow-workbench-rail {
+  display: grid;
+  gap: 18px;
+}
+.flow-rail-card,
+.flow-workbench-main {
+  border: 1px solid rgba(129, 140, 248, 0.12);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(99, 102, 241, 0.1), transparent 28%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(8, 13, 29, 0.95));
+  box-shadow: 0 22px 54px rgba(1, 6, 18, 0.28);
+}
+.flow-rail-card {
+  padding: 18px;
+  border-radius: 26px;
+}
+.flow-rail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.flow-rail-head strong {
+  display: block;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+.flow-template-grid-rail {
+  grid-template-columns: 1fr;
+}
+.flow-builder-toolbar {
+  display: grid;
+  gap: 14px;
+}
+.flow-builder-toolbar .flow-toolbar-actions {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.flow-toolbar-grid {
+  display: grid;
+  gap: 10px;
+}
+.flow-toolbar-group > span {
+  color: #aeb7ee;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.flow-toolbar-node {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 14px;
+  text-align: left;
+  border-radius: 18px;
+  border: 1px solid rgba(129, 140, 248, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+.flow-toolbar-node:hover {
+  transform: translateY(-1px);
+  border-color: rgba(129, 140, 248, 0.28);
+  background: rgba(99, 102, 241, 0.08);
+  box-shadow: 0 0 26px rgba(99, 102, 241, 0.1);
+}
+.flow-toolbar-node strong {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #6366f1, #a78bfa);
+  color: white;
+  font-size: 10px;
+}
+.flow-toolbar-node span,
+.flow-toolbar-node small {
+  display: block;
+}
+.flow-toolbar-node span {
+  font-size: 14px;
+  font-weight: 700;
+}
+.flow-toolbar-node small {
+  margin-top: 4px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.flow-workbench-main {
+  padding: 22px;
+  border-radius: 30px;
+}
+.flow-canvas-shell-roomy {
+  height: 700px;
+  margin-top: 18px;
+}
+.flow-validation-panel-valid {
+  border-color: rgba(74, 222, 128, 0.24);
+  background: rgba(74, 222, 128, 0.06);
+}
 .execution-console {
   display: grid;
   gap: 18px;
@@ -3663,5 +3780,33 @@ button, input, select, textarea { font: inherit; }
   }
   .flow-studio-side {
     position: static;
+  }
+}
+@media (max-width: 1180px) {
+  .flow-workbench {
+    grid-template-columns: 1fr;
+  }
+  .flow-workbench-rail,
+  .flow-studio-side {
+    position: static;
+  }
+  .flow-template-grid-rail,
+  .flow-toolbar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 720px) {
+  .flow-template-grid-rail,
+  .flow-toolbar-grid {
+    grid-template-columns: 1fr;
+  }
+  .flow-workbench-main,
+  .flow-rail-card,
+  .flow-inspector-panel {
+    padding: 16px;
+    border-radius: 22px;
+  }
+  .flow-canvas-shell-roomy {
+    height: 540px;
   }
 }
