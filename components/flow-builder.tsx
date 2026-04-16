@@ -1,95 +1,755 @@
 "use client";
 
-import { Background, Controls, MiniMap, Position, ReactFlow, Handle, addEdge, useEdgesState, useNodesState, type Connection, type Edge, type Node, type NodeProps } from "@xyflow/react";
+import {
+  Background,
+  Controls,
+  Handle,
+  MiniMap,
+  Position,
+  ReactFlow,
+  addEdge,
+  useEdgesState,
+  useNodesState,
+  type Connection,
+  type Edge,
+  type Node,
+  type NodeProps
+} from "@xyflow/react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { type AutomationDetails, type FlowCanvasEdge, type FlowCanvasNode, type FlowCanvasNodeType, type VisualAutomationTrigger, decodeTrigger, decodeVisualTrigger } from "@/lib/automation-utils";
+import {
+  type AutomationDetails,
+  type FlowCanvasEdge,
+  type FlowCanvasNode,
+  type FlowCanvasNodeType,
+  type VisualAutomationTrigger,
+  decodeVisualTrigger
+} from "@/lib/automation-utils";
 
 type AutomationItem = { id: string; name: string; channel: string; trigger: string; status: string; message: string };
 type FlowBuilderProps = { initialAutomations: AutomationItem[] };
-type FlowNodeData = { label: string; nodeKindLabel?: string; category?: "trigger" | "action" | "logic" | "data"; channel?: string; triggerType?: AutomationDetails["triggerType"]; keyword?: string; message?: string; quickReplies?: string; delayMinutes?: number; condition?: string; actionType?: AutomationDetails["actionType"]; variableName?: string; variableValue?: string };
+type FlowNodeData = {
+  label: string;
+  nodeKindLabel?: string;
+  category?: "trigger" | "action" | "logic" | "data";
+  channel?: string;
+  triggerType?: AutomationDetails["triggerType"];
+  keyword?: string;
+  message?: string;
+  quickReplies?: string;
+  delayMinutes?: number;
+  condition?: string;
+  actionType?: AutomationDetails["actionType"];
+  variableName?: string;
+  variableValue?: string;
+};
 type StudioNode = Node<FlowNodeData, FlowCanvasNodeType>;
 type StudioEdge = Edge<{ label?: string }>;
+type FlowSnapshot = { nodes: StudioNode[]; edges: StudioEdge[] };
 type PaletteItem = { id: string; icon: string; label: string; description: string; baseType: FlowCanvasNodeType; data: FlowNodeData };
 
-const draftKey = "klio-flow-studio-draft-v3";
-const channels = [{ id: "instagram", label: "Instagram" }, { id: "whatsapp", label: "WhatsApp" }, { id: "messenger", label: "Messenger" }, { id: "telegram", label: "Telegram" }, { id: "multi", label: "Multicanal" }];
-const triggers = [{ id: "new_message", label: "Nova mensagem" }, { id: "keyword", label: "Palavra-chave" }];
-const actions = [{ id: "reply_same_channel", label: "Responder no canal" }, { id: "handoff_whatsapp", label: "Levar para WhatsApp" }, { id: "notify_team", label: "Avisar equipe" }];
-const tokens = ["{{nome}}", "{{telefone}}", "{{origem_lead}}", "{{ultima_compra}}", "{{atendente}}"];
-const meta: Record<FlowCanvasNodeType, { icon: string; label: string; tone: string }> = { entry: { icon: "IN", label: "Entrada", tone: "entry" }, message: { icon: "MSG", label: "Mensagem", tone: "message" }, wait: { icon: "WAIT", label: "Espera", tone: "wait" }, condition: { icon: "IF", label: "Condição", tone: "condition" }, action: { icon: "GO", label: "Ação", tone: "action" } };
+const draftKey = "klio-flow-studio-draft-v4";
+const channels = [
+  { id: "instagram", label: "Instagram" },
+  { id: "whatsapp", label: "WhatsApp" },
+  { id: "messenger", label: "Messenger" },
+  { id: "telegram", label: "Telegram" },
+  { id: "multi", label: "Multicanal" }
+];
+const triggers = [
+  { id: "new_message", label: "Nova mensagem" },
+  { id: "keyword", label: "Palavra-chave" }
+];
+const actions = [
+  { id: "reply_same_channel", label: "Responder no canal" },
+  { id: "handoff_whatsapp", label: "Levar para WhatsApp" },
+  { id: "notify_team", label: "Avisar equipe" }
+];
+const variableTokens = ["{{nome}}", "{{telefone}}", "{{origem_lead}}", "{{ultima_compra}}", "{{atendente}}"];
+const nodeMeta: Record<FlowCanvasNodeType, { icon: string; label: string; tone: string }> = {
+  entry: { icon: "IN", label: "Entrada", tone: "entry" },
+  message: { icon: "MSG", label: "Mensagem", tone: "message" },
+  wait: { icon: "WAIT", label: "Espera", tone: "wait" },
+  condition: { icon: "IF", label: "Condicao", tone: "condition" },
+  action: { icon: "GO", label: "Acao", tone: "action" }
+};
 
-const palette: { title: string; items: PaletteItem[] }[] = [
-  { title: "Entradas", items: [{ id: "incoming", icon: "IN", label: "Mensagem recebida", description: "Começa quando alguém chama sua empresa.", baseType: "entry" as const, data: { label: "Mensagem recebida", category: "trigger" as const, nodeKindLabel: "Mensagem recebida", channel: "whatsapp", triggerType: "new_message" } }, { id: "lead", icon: "LEAD", label: "Novo lead", description: "Entrada vinda de campanha ou anúncio.", baseType: "entry" as const, data: { label: "Novo lead", category: "trigger" as const, nodeKindLabel: "Novo lead", channel: "instagram", triggerType: "keyword", keyword: "quero" } }] },
-  { title: "Ações", items: [{ id: "message", icon: "MSG", label: "Enviar mensagem", description: "Resposta automática com variáveis.", baseType: "message" as const, data: { label: "Enviar mensagem", category: "action" as const, nodeKindLabel: "Enviar mensagem", message: "Olá {{nome}}, recebi sua mensagem e já vou te ajudar." } }, { id: "wait", icon: "WAIT", label: "Esperar", description: "Cria um respiro antes da próxima etapa.", baseType: "wait" as const, data: { label: "Esperar", category: "action" as const, nodeKindLabel: "Esperar", delayMinutes: 5 } }, { id: "notify", icon: "TEAM", label: "Avisar equipe", description: "Repasse humano quando o lead esquentar.", baseType: "action" as const, data: { label: "Avisar equipe", category: "action" as const, nodeKindLabel: "Avisar equipe", actionType: "notify_team", message: "Lead pronto para atendimento humano." } }] },
-  { title: "Lógica e dados", items: [{ id: "condition", icon: "IF", label: "Condição", description: "Filtra por intenção ou palavra.", baseType: "condition" as const, data: { label: "Condição", category: "logic" as const, nodeKindLabel: "Condição", condition: "contém preço" } }, { id: "variable", icon: "VAR", label: "Setar variável", description: "Guarda contexto do lead.", baseType: "action" as const, data: { label: "Setar variável", category: "data" as const, nodeKindLabel: "Setar variável", variableName: "origem_lead", variableValue: "instagram", actionType: "reply_same_channel" } }] }
+function createNode(id: string, type: FlowCanvasNodeType, x: number, y: number, data: FlowNodeData): StudioNode {
+  return { id, type, position: { x, y }, data, className: `flow-studio-node-shell flow-studio-node-${type}` };
+}
+
+function createEdge(source: string, target: string, label?: string): StudioEdge {
+  return { id: `${source}-${target}`, source, target, label, type: "smoothstep", animated: true, className: "flow-studio-edge" };
+}
+
+function cloneFlow(flow: FlowSnapshot): FlowSnapshot {
+  return {
+    nodes: flow.nodes.map((item) => ({ ...item, data: { ...item.data }, position: { ...item.position } })),
+    edges: flow.edges.map((item) => ({ ...item }))
+  };
+}
+
+function readDraft() {
+  if (typeof window === "undefined") return null;
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(draftKey) || "null");
+    return parsed?.nodes && parsed?.edges ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function getLinearPath(nodes: StudioNode[], edges: StudioEdge[]) {
+  const entry = nodes.find((item) => item.type === "entry");
+  if (!entry) return [];
+  const path = [entry.id];
+  const seen = new Set(path);
+  let current = entry.id;
+  while (true) {
+    const next = edges.find((edge) => edge.source === current && !seen.has(edge.target));
+    if (!next) break;
+    path.push(next.target);
+    seen.add(next.target);
+    current = next.target;
+  }
+  return path;
+}
+
+function getFallback(nodes: StudioNode[], edges: StudioEdge[]): AutomationDetails {
+  const ordered = getLinearPath(nodes, edges).map((id) => nodes.find((item) => item.id === id)).filter((item): item is StudioNode => Boolean(item));
+  const entry = ordered.find((item) => item.type === "entry") || nodes.find((item) => item.type === "entry");
+  const action = [...ordered].reverse().find((item) => item.type === "action") || nodes.find((item) => item.type === "action");
+  const wait = ordered.find((item) => item.type === "wait") || nodes.find((item) => item.type === "wait");
+  return {
+    triggerType: entry?.data.triggerType === "new_message" ? "new_message" : "keyword",
+    keyword: entry?.data.keyword || "",
+    actionType: action?.data.actionType || "reply_same_channel",
+    secondMessage: action?.data.message || "",
+    delayMinutes: Number(wait?.data.delayMinutes || 0)
+  };
+}
+
+function validateFlow(nodes: StudioNode[], edges: StudioEdge[]) {
+  const issues: string[] = [];
+  const entry = nodes.find((item) => item.type === "entry");
+  const message = nodes.find((item) => item.type === "message" && String(item.data.message || "").trim());
+  const path = getLinearPath(nodes, edges);
+  if (!entry) issues.push("Adicione uma entrada para iniciar o fluxo.");
+  if (!message) issues.push("Inclua pelo menos uma mensagem clara para o cliente.");
+  if (entry && path.length < 2) issues.push("Conecte a entrada ao proximo bloco.");
+  if (entry && message && !path.includes(message.id)) issues.push("A mensagem principal precisa fazer parte do caminho conectado.");
+  return { valid: issues.length === 0, issues };
+}
+
+function toCanvas(nodes: StudioNode[], edges: StudioEdge[]): VisualAutomationTrigger {
+  const linearPath = getLinearPath(nodes, edges);
+  const entry = nodes.find((item) => item.type === "entry");
+  return {
+    version: 2,
+    nodes: nodes.map((item): FlowCanvasNode => ({ id: item.id, type: item.type || "message", position: item.position, data: { ...item.data } })),
+    edges: edges.map((item): FlowCanvasEdge => ({ id: item.id, source: item.source, target: item.target, label: typeof item.label === "string" ? item.label : undefined })),
+    entryNodeId: entry?.id || linearPath[0] || "",
+    linearPath,
+    legacyFallback: getFallback(nodes, edges)
+  };
+}
+
+function fromCanvas(trigger: VisualAutomationTrigger): FlowSnapshot {
+  return {
+    nodes: trigger.nodes.map((item) => createNode(item.id, item.type, item.position.x, item.position.y, item.data)),
+    edges: trigger.edges.map((item) => createEdge(item.source, item.target, item.label))
+  };
+}
+
+function getNodeSummary(node: Pick<StudioNode, "type" | "data">) {
+  if (node.type === "entry") {
+    const channel = channels.find((item) => item.id === node.data.channel)?.label || "Canal";
+    const trigger = node.data.triggerType === "new_message" ? "nova mensagem" : node.data.keyword || "palavra-chave";
+    return `${channel} · ${trigger}`;
+  }
+  if (node.type === "message") return node.data.message || "Mensagem sem texto";
+  if (node.type === "wait") return `${node.data.delayMinutes || 0} min de espera`;
+  if (node.type === "condition") return node.data.condition || "Condicao sem regra";
+  if (node.data.category === "data") return `${node.data.variableName || "variavel"} = ${node.data.variableValue || "valor"}`;
+  return actions.find((item) => item.id === node.data.actionType)?.label || "Acao";
+}
+
+const paletteGroups: { title: string; items: PaletteItem[] }[] = [
+  {
+    title: "Entradas",
+    items: [
+      { id: "incoming-message", icon: "IN", label: "Mensagem recebida", description: "Comeca quando alguem inicia uma conversa.", baseType: "entry", data: { label: "Mensagem recebida", nodeKindLabel: "Mensagem recebida", category: "trigger", channel: "whatsapp", triggerType: "new_message" } },
+      { id: "new-lead", icon: "LEAD", label: "Novo lead", description: "Usa comentario ou campanha para abrir um fluxo.", baseType: "entry", data: { label: "Novo lead", nodeKindLabel: "Novo lead", category: "trigger", channel: "instagram", triggerType: "keyword", keyword: "quero" } }
+    ]
+  },
+  {
+    title: "Acoes",
+    items: [
+      { id: "send-message", icon: "MSG", label: "Enviar mensagem", description: "Resposta automatica com variaveis.", baseType: "message", data: { label: "Enviar mensagem", nodeKindLabel: "Enviar mensagem", category: "action", message: "Ola {{nome}}, recebi sua mensagem e vou te atender agora." } },
+      { id: "wait", icon: "WAIT", label: "Esperar", description: "Cria uma pausa antes da proxima etapa.", baseType: "wait", data: { label: "Esperar", nodeKindLabel: "Esperar", category: "action", delayMinutes: 5 } },
+      { id: "notify-team", icon: "TEAM", label: "Avisar equipe", description: "Faz o repasse para um humano.", baseType: "action", data: { label: "Avisar equipe", nodeKindLabel: "Avisar equipe", category: "action", actionType: "notify_team", message: "Lead pronto para atendimento humano." } }
+    ]
+  },
+  {
+    title: "Logica e dados",
+    items: [
+      { id: "condition", icon: "IF", label: "Condicao", description: "Filtra por palavra, contexto ou intencao.", baseType: "condition", data: { label: "Condicao", nodeKindLabel: "Condicao", category: "logic", condition: "contem preco" } },
+      { id: "variable", icon: "VAR", label: "Setar variavel", description: "Guarda contexto para usar depois.", baseType: "action", data: { label: "Setar variavel", nodeKindLabel: "Setar variavel", category: "data", variableName: "origem_lead", variableValue: "instagram", actionType: "reply_same_channel" } }
+    ]
+  }
 ];
 
-const TEMPLATES = [
-  { id: "lead", title: "Lead do Instagram", subtitle: "Capta, responde e repassa sem travar o time.", nodes: [n("entry-1", "entry", 0, 60, { label: "Comentário no Instagram", channel: "instagram", triggerType: "keyword", keyword: "quero" }), n("message-1", "message", 300, 60, { label: "Resposta inicial", message: "Oi {{nome}}, vi seu interesse. Me diga em uma frase o que você precisa agora." }), n("wait-1", "wait", 600, 60, { label: "Esperar retorno", delayMinutes: 10 }), n("action-1", "action", 900, 60, { label: "Levar para WhatsApp", actionType: "handoff_whatsapp", message: "Perfeito. Vou continuar com você no WhatsApp." })], edges: [e("entry-1", "message-1"), e("message-1", "wait-1"), e("wait-1", "action-1")] },
-  { id: "support", title: "Atendimento inicial", subtitle: "Boas-vindas rápidas e repasse quando preciso.", nodes: [n("entry-1", "entry", 0, 60, { label: "Nova mensagem", channel: "whatsapp", triggerType: "new_message" }), n("message-1", "message", 300, 60, { label: "Boas-vindas", message: "Olá {{nome}}, recebi sua mensagem e já vou te ajudar." }), n("condition-1", "condition", 600, 60, { label: "Separar intenção", condition: "contém orçamento ou suporte" }), n("action-1", "action", 900, 60, { label: "Avisar equipe", actionType: "notify_team", message: "Cliente pediu atendimento humano." })], edges: [e("entry-1", "message-1"), e("message-1", "condition-1"), e("condition-1", "action-1", "sim")] }
+const templates = [
+  {
+    id: "lead-instagram",
+    title: "Lead do Instagram",
+    subtitle: "Capta o interesse, qualifica e leva para o canal certo.",
+    nodes: [
+      createNode("entry-1", "entry", 0, 80, { label: "Comentario no Instagram", channel: "instagram", triggerType: "keyword", keyword: "quero" }),
+      createNode("message-1", "message", 320, 80, { label: "Resposta inicial", message: "Oi {{nome}}, vi seu interesse. Me diga em uma frase o que voce quer automatizar primeiro." }),
+      createNode("wait-1", "wait", 640, 80, { label: "Esperar retorno", delayMinutes: 10 }),
+      createNode("action-1", "action", 960, 80, { label: "Levar para WhatsApp", actionType: "handoff_whatsapp", message: "Perfeito. Vou continuar com voce no WhatsApp." })
+    ],
+    edges: [createEdge("entry-1", "message-1"), createEdge("message-1", "wait-1"), createEdge("wait-1", "action-1")]
+  },
+  {
+    id: "support-whatsapp",
+    title: "Atendimento inicial",
+    subtitle: "Recebe, responde e escala o atendimento quando precisar.",
+    nodes: [
+      createNode("entry-1", "entry", 0, 80, { label: "Nova mensagem", channel: "whatsapp", triggerType: "new_message" }),
+      createNode("message-1", "message", 320, 80, { label: "Boas-vindas", message: "Ola {{nome}}, recebi sua mensagem e ja vou te ajudar." }),
+      createNode("condition-1", "condition", 640, 80, { label: "Separar intencao", condition: "contem orcamento ou suporte" }),
+      createNode("action-1", "action", 960, 80, { label: "Avisar equipe", actionType: "notify_team", message: "Cliente pediu atendimento humano." })
+    ],
+    edges: [createEdge("entry-1", "message-1"), createEdge("message-1", "condition-1"), createEdge("condition-1", "action-1", "sim")]
+  },
+  {
+    id: "reactivate",
+    title: "Reengajar oportunidade",
+    subtitle: "Volta a falar com quem parou no meio da conversa.",
+    nodes: [
+      createNode("entry-1", "entry", 0, 80, { label: "Lead parado", channel: "multi", triggerType: "keyword", keyword: "sem resposta" }),
+      createNode("message-1", "message", 320, 80, { label: "Mensagem de retorno", message: "Oi {{nome}}, passei para ver se ainda faz sentido continuar por aqui." }),
+      createNode("wait-1", "wait", 640, 80, { label: "Esperar resposta", delayMinutes: 60 }),
+      createNode("message-2", "message", 960, 80, { label: "Ultimo toque", message: "Se preferir, posso te encaminhar direto para um atendente agora." })
+    ],
+    edges: [createEdge("entry-1", "message-1"), createEdge("message-1", "wait-1"), createEdge("wait-1", "message-2")]
+  }
 ];
-
-function n(id: string, type: FlowCanvasNodeType, x: number, y: number, data: FlowNodeData): StudioNode { return { id, type, position: { x, y }, data, className: `flow-studio-node-shell flow-studio-node-${type}` }; }
-function e(source: string, target: string, label?: string): StudioEdge { return { id: `${source}-${target}`, source, target, label, type: "smoothstep", animated: true, className: "flow-studio-edge" }; }
-function cloneFlow(flow: { nodes: StudioNode[]; edges: StudioEdge[] }) { return { nodes: flow.nodes.map((i) => ({ ...i, data: { ...i.data }, position: { ...i.position } })), edges: flow.edges.map((i) => ({ ...i })) }; }
-function readDraft() { if (typeof window === "undefined") return null; try { const p = JSON.parse(window.localStorage.getItem(draftKey) || "null"); return p?.nodes && p?.edges ? p : null; } catch { return null; } }
-function pathOf(nodes: StudioNode[], edges: StudioEdge[]) { const entry = nodes.find((i) => i.type === "entry"); if (!entry) return []; const path = [entry.id], seen = new Set(path); let current = entry.id; while (true) { const next = edges.find((x) => x.source === current && !seen.has(x.target)); if (!next) break; path.push(next.target); seen.add(next.target); current = next.target; } return path; }
-function fallback(nodes: StudioNode[], edges: StudioEdge[]): AutomationDetails { const path = pathOf(nodes, edges), ordered = path.map((id) => nodes.find((i) => i.id === id)).filter(Boolean) as StudioNode[]; const entry = ordered.find((i) => i.type === "entry") || nodes.find((i) => i.type === "entry"); const action = [...ordered].reverse().find((i) => i.type === "action") || nodes.find((i) => i.type === "action"); const wait = ordered.find((i) => i.type === "wait") || nodes.find((i) => i.type === "wait"); return { triggerType: entry?.data.triggerType === "new_message" ? "new_message" : "keyword", keyword: entry?.data.keyword || "", actionType: action?.data.actionType || "reply_same_channel", secondMessage: action?.data.message || "", delayMinutes: Number(wait?.data.delayMinutes || 0) }; }
-function validate(nodes: StudioNode[], edges: StudioEdge[]) { const entry = nodes.find((i) => i.type === "entry"), msg = nodes.find((i) => i.type === "message" && String(i.data.message || "").trim()), path = pathOf(nodes, edges), issues: string[] = []; if (!entry) issues.push("Adicione uma entrada."); if (!msg) issues.push("Inclua uma mensagem principal."); if (entry && path.length < 2) issues.push("Conecte a entrada ao próximo bloco."); if (entry && msg && !path.includes(msg.id)) issues.push("A mensagem precisa estar no caminho conectado."); return { valid: !issues.length, issues }; }
-function toCanvas(nodes: StudioNode[], edges: StudioEdge[]): VisualAutomationTrigger { const linearPath = pathOf(nodes, edges), entry = nodes.find((i) => i.type === "entry"); return { version: 2, nodes: nodes.map((i): FlowCanvasNode => ({ id: i.id, type: i.type || "message", position: i.position, data: { ...i.data } })), edges: edges.map((i): FlowCanvasEdge => ({ id: i.id, source: i.source, target: i.target, label: typeof i.label === "string" ? i.label : undefined })), entryNodeId: entry?.id || linearPath[0] || "", linearPath, legacyFallback: fallback(nodes, edges) }; }
-function fromCanvas(trigger: VisualAutomationTrigger) { return { nodes: trigger.nodes.map((i) => n(i.id, i.type, i.position.x, i.position.y, i.data)), edges: trigger.edges.map((i) => e(i.source, i.target, i.label)) }; }
-function summary(node: Pick<StudioNode, "type" | "data">) { if (node.type === "entry") return `${channels.find((i) => i.id === node.data.channel)?.label || "Canal"} · ${node.data.triggerType === "new_message" ? "nova mensagem" : node.data.keyword || "palavra-chave"}`; if (node.type === "message") return node.data.message || "Mensagem sem texto"; if (node.type === "wait") return `${node.data.delayMinutes || 0} min de espera`; if (node.type === "condition") return node.data.condition || "Condição sem regra"; if (node.data.category === "data") return `${node.data.variableName || "variável"} = ${node.data.variableValue || "valor"}`; return actions.find((i) => i.id === node.data.actionType)?.label || "Ação"; }
 
 function FlowNodeCard({ data, type, selected }: NodeProps<StudioNode>) {
-  const m = meta[type || "message"];
-  return <div className={`flow-node-card flow-node-card-${m.tone}${selected ? " flow-node-card-selected" : ""}`}><Handle type="target" position={Position.Left} className="flow-node-handle" /><div className="flow-node-card-head"><span>{m.icon}</span><div><strong>{data.label}</strong><small>{data.nodeKindLabel || m.label}</small></div></div>{data.category ? <span className={`flow-node-kind flow-node-kind-${data.category}`}>{data.category}</span> : null}<p>{summary({ type: type || "message", data })}</p><Handle type="source" position={Position.Right} className="flow-node-handle" /></div>;
+  const nodeType = type || "message";
+  const metaItem = nodeMeta[nodeType];
+  return (
+    <div className={`flow-node-card flow-node-card-${metaItem.tone}${selected ? " flow-node-card-selected" : ""}`}>
+      <Handle type="target" position={Position.Left} className="flow-node-handle" />
+      <div className="flow-node-card-head">
+        <span>{metaItem.icon}</span>
+        <div>
+          <strong>{data.label}</strong>
+          <small>{data.nodeKindLabel || metaItem.label}</small>
+        </div>
+      </div>
+      {data.category ? <span className={`flow-node-kind flow-node-kind-${data.category}`}>{data.category}</span> : null}
+      <p>{getNodeSummary({ type: nodeType, data })}</p>
+      <Handle type="source" position={Position.Right} className="flow-node-handle" />
+    </div>
+  );
 }
+
 const nodeTypes = { entry: FlowNodeCard, message: FlowNodeCard, wait: FlowNodeCard, condition: FlowNodeCard, action: FlowNodeCard };
 
+function InspectorPanel({ nodeItem, onUpdate }: { nodeItem: StudioNode | null; onUpdate: (id: string, data: Partial<FlowNodeData>) => void }) {
+  if (!nodeItem) {
+    return (
+      <section className="flow-inspector-panel">
+        <span className="workspace-kicker">Editor de bloco</span>
+        <div className="builder-empty-state">
+          <strong>Escolha um bloco para editar</strong>
+          <p className="mini">Clique no canvas para ajustar gatilho, texto, espera ou acao final.</p>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="flow-inspector-panel">
+      <span className="workspace-kicker">Editor de bloco</span>
+      <label className="flow-field">
+        <span>Nome do bloco</span>
+        <input className="input" value={nodeItem.data.label || ""} onChange={(event) => onUpdate(nodeItem.id, { label: event.target.value })} />
+      </label>
+
+      {nodeItem.type === "entry" ? (
+        <>
+          <div className="flow-two-columns">
+            <label className="flow-field">
+              <span>Canal</span>
+              <select className="select" value={nodeItem.data.channel || "whatsapp"} onChange={(event) => onUpdate(nodeItem.id, { channel: event.target.value })}>
+                {channels.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+              </select>
+            </label>
+            <label className="flow-field">
+              <span>Gatilho</span>
+              <select className="select" value={nodeItem.data.triggerType || "new_message"} onChange={(event) => onUpdate(nodeItem.id, { triggerType: event.target.value as AutomationDetails["triggerType"] })}>
+                {triggers.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+              </select>
+            </label>
+          </div>
+          <label className="flow-field">
+            <span>Palavra-chave</span>
+            <input className="input" value={nodeItem.data.keyword || ""} onChange={(event) => onUpdate(nodeItem.id, { keyword: event.target.value })} />
+          </label>
+        </>
+      ) : null}
+
+      {nodeItem.type === "message" ? (
+        <>
+          <label className="flow-field">
+            <span>Mensagem</span>
+            <textarea className="textarea flow-message-box" value={nodeItem.data.message || ""} onChange={(event) => onUpdate(nodeItem.id, { message: event.target.value })} />
+          </label>
+          <label className="flow-field">
+            <span>Respostas rapidas</span>
+            <input className="input" value={nodeItem.data.quickReplies || ""} onChange={(event) => onUpdate(nodeItem.id, { quickReplies: event.target.value })} />
+          </label>
+          <div className="flow-variable-row">
+            {variableTokens.map((token) => (
+              <button key={token} type="button" onClick={() => onUpdate(nodeItem.id, { message: `${nodeItem.data.message || ""}${nodeItem.data.message ? " " : ""}${token}` })}>
+                {token}
+              </button>
+            ))}
+          </div>
+        </>
+      ) : null}
+
+      {nodeItem.type === "wait" ? (
+        <label className="flow-field">
+          <span>Tempo de espera</span>
+          <input className="input" min={0} type="number" value={nodeItem.data.delayMinutes || 0} onChange={(event) => onUpdate(nodeItem.id, { delayMinutes: Number(event.target.value) })} />
+        </label>
+      ) : null}
+
+      {nodeItem.type === "condition" ? (
+        <label className="flow-field">
+          <span>Regra</span>
+          <input className="input" value={nodeItem.data.condition || ""} onChange={(event) => onUpdate(nodeItem.id, { condition: event.target.value })} />
+        </label>
+      ) : null}
+
+      {nodeItem.type === "action" ? (
+        <>
+          <label className="flow-field">
+            <span>Tipo de acao</span>
+            <select className="select" value={nodeItem.data.actionType || "reply_same_channel"} onChange={(event) => onUpdate(nodeItem.id, { actionType: event.target.value as AutomationDetails["actionType"] })}>
+              {actions.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+            </select>
+          </label>
+          <label className="flow-field">
+            <span>Mensagem complementar</span>
+            <textarea className="textarea flow-message-box-small" value={nodeItem.data.message || ""} onChange={(event) => onUpdate(nodeItem.id, { message: event.target.value })} />
+          </label>
+          {nodeItem.data.category === "data" ? (
+            <div className="flow-two-columns">
+              <label className="flow-field">
+                <span>Variavel</span>
+                <input className="input" value={nodeItem.data.variableName || ""} onChange={(event) => onUpdate(nodeItem.id, { variableName: event.target.value })} />
+              </label>
+              <label className="flow-field">
+                <span>Valor</span>
+                <input className="input" value={nodeItem.data.variableValue || ""} onChange={(event) => onUpdate(nodeItem.id, { variableValue: event.target.value })} />
+              </label>
+            </div>
+          ) : null}
+        </>
+      ) : null}
+    </section>
+  );
+}
+
 export function FlowBuilder({ initialAutomations }: FlowBuilderProps) {
-  const boot = useMemo(() => readDraft(), []), first = useMemo(() => cloneFlow(TEMPLATES[0]), []);
+  const boot = useMemo(() => readDraft(), []);
+  const initialFlow = useMemo(() => cloneFlow({ nodes: templates[0].nodes, edges: templates[0].edges }), []);
   const [automations, setAutomations] = useState(initialAutomations);
-  const [nodes, setNodes, onNodesChange] = useNodesState<StudioNode>(boot?.nodes || first.nodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<StudioEdge>(boot?.edges || first.edges);
-  const [name, setName] = useState(boot?.name || "Qualificação automática"), [status, setStatus] = useState(boot?.status || "Ativa");
-  const [selectedId, setSelectedId] = useState<string | null>((boot?.nodes || first.nodes)[0]?.id || null);
-  const [saving, setSaving] = useState(false), [testing, setTesting] = useState(false), [statusText, setStatusText] = useState(boot ? "Rascunho restaurado." : "Tudo pronto para montar seu fluxo.");
-  const [draftVersion, setDraftVersion] = useState(boot?.version || 1), [autosaveLabel, setAutosaveLabel] = useState(boot?.updatedAt ? `Salvo às ${boot.updatedAt}` : "Autosave ativo");
-  const [testingId, setTestingId] = useState(initialAutomations[0]?.id || ""), [testRecipient, setTestRecipient] = useState(""), [testContactName, setTestContactName] = useState("Cliente teste");
-  const [history, setHistory] = useState<{ nodes: StudioNode[]; edges: StudioEdge[] }[]>([]), [future, setFuture] = useState<{ nodes: StudioNode[]; edges: StudioEdge[] }[]>([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<StudioNode>(boot?.nodes || initialFlow.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<StudioEdge>(boot?.edges || initialFlow.edges);
+  const [name, setName] = useState(boot?.name || "Qualificacao automatica");
+  const [status, setStatus] = useState(boot?.status || "Ativa");
+  const [selectedId, setSelectedId] = useState<string | null>((boot?.nodes || initialFlow.nodes)[0]?.id || null);
+  const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [statusText, setStatusText] = useState("Organize sua automacao com mais clareza.");
+  const [draftVersion, setDraftVersion] = useState(boot?.version || 1);
+  const [autosaveLabel, setAutosaveLabel] = useState(boot?.updatedAt ? `Salvo as ${boot.updatedAt}` : "Autosave ativo");
+  const [testingId, setTestingId] = useState(initialAutomations[0]?.id || "");
+  const [testRecipient, setTestRecipient] = useState("");
+  const [testContactName, setTestContactName] = useState("Cliente teste");
+  const [history, setHistory] = useState<FlowSnapshot[]>([]);
+  const [future, setFuture] = useState<FlowSnapshot[]>([]);
 
-  const selectedNode = useMemo(() => nodes.find((i) => i.id === selectedId) || null, [nodes, selectedId]);
-  const checked = useMemo(() => validate(nodes, edges), [nodes, edges]);
-  const preview = useMemo(() => pathOf(nodes, edges).map((id) => nodes.find((i) => i.id === id)).filter(Boolean) as StudioNode[], [nodes, edges]);
-  const compiled = useMemo(() => fallback(nodes, edges), [nodes, edges]);
-  const selectedAutomation = useMemo(() => automations.find((i) => i.id === testingId) || null, [automations, testingId]);
+  const selectedNode = useMemo(() => nodes.find((item) => item.id === selectedId) || null, [nodes, selectedId]);
+  const validation = useMemo(() => validateFlow(nodes, edges), [nodes, edges]);
+  const previewSteps = useMemo(() => getLinearPath(nodes, edges).map((id) => nodes.find((item) => item.id === id)).filter((item): item is StudioNode => Boolean(item)), [nodes, edges]);
+  const fallback = useMemo(() => getFallback(nodes, edges), [nodes, edges]);
+  const activeCount = useMemo(() => automations.filter((item) => item.status === "Ativa").length, [automations]);
+  const draftCount = useMemo(() => automations.filter((item) => item.status !== "Ativa").length, [automations]);
 
-  useEffect(() => { const t = window.setTimeout(() => { const updatedAt = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }); setDraftVersion((current: number) => { const version = current + 1; window.localStorage.setItem(draftKey, JSON.stringify({ name, status, nodes, edges, updatedAt, version })); return version; }); setAutosaveLabel(`Salvo às ${updatedAt}`); }, 700); return () => window.clearTimeout(t); }, [name, status, nodes, edges]);
-  function remember() { setHistory((c) => [...c.slice(-19), cloneFlow({ nodes, edges })]); setFuture([]); }
-  function applyTemplate(id: string) { const flow = cloneFlow(TEMPLATES.find((i) => i.id === id) || TEMPLATES[0]); remember(); setNodes(flow.nodes); setEdges(flow.edges); setName(TEMPLATES.find((i) => i.id === id)?.title || name); setSelectedId(flow.nodes[0]?.id || null); setStatusText("Modelo aplicado. Agora edite a conversa do seu jeito."); }
-  function addBlock(item: PaletteItem) { remember(); const next = n(`${item.baseType}-${Date.now()}`, item.baseType, 140 + nodes.length * 38, 120 + nodes.length * 28, { ...item.data }); setNodes((c) => [...c, next]); setSelectedId(next.id); setStatusText(`Bloco adicionado: ${item.label}.`); }
-  function duplicate() { const s = nodes.find((i) => i.id === selectedId); if (!s) return; remember(); const copy = { ...s, id: `${s.type}-copy-${Date.now()}`, position: { x: s.position.x + 48, y: s.position.y + 48 }, data: { ...s.data, label: `${s.data.label} cópia` } }; setNodes((c) => [...c, copy]); setSelectedId(copy.id); }
-  function updateNode(id: string, data: Partial<FlowNodeData>) { remember(); setNodes((c) => c.map((i) => i.id === id ? { ...i, data: { ...i.data, ...data } } : i)); }
-  function undo() { const prev = history.at(-1); if (!prev) return; setFuture((c) => [cloneFlow({ nodes, edges }), ...c.slice(0, 19)]); setHistory((c) => c.slice(0, -1)); setNodes(prev.nodes); setEdges(prev.edges); }
-  function redo() { const next = future[0]; if (!next) return; setHistory((c) => [...c.slice(-19), cloneFlow({ nodes, edges })]); setFuture((c) => c.slice(1)); setNodes(next.nodes); setEdges(next.edges); }
-  async function saveFlow(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null, asked = submitter?.value || status, finalStatus = checked.valid ? asked : "Rascunho", canvas = toCanvas(nodes, edges), message = preview.find((i) => i.type === "message")?.data.message || "Mensagem automática da Klio."; setSaving(true); const res = await fetch("/api/automations", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, channel: nodes.find((i) => i.type === "entry")?.data.channel || "multi", triggerType: canvas.legacyFallback.triggerType, keyword: canvas.legacyFallback.keyword, actionType: canvas.legacyFallback.actionType, secondMessage: canvas.legacyFallback.secondMessage, delayMinutes: canvas.legacyFallback.delayMinutes, status: finalStatus, message, canvas }) }); const data = await res.json(); setSaving(false); if (!res.ok) return setStatusText(data.error || "Não foi possível salvar o fluxo."); setAutomations((c) => [data.automation, ...c]); setTestingId(data.automation.id); setStatus(finalStatus); setStatusText(checked.valid ? (finalStatus === "Ativa" ? "Fluxo publicado com sucesso." : "Rascunho salvo.") : "Fluxo salvo como rascunho. Complete os pontos pendentes antes de publicar."); }
-  async function testFlow() { if (!testingId) return setStatusText("Selecione ou salve um fluxo antes de testar."); if (!testRecipient.trim()) return setStatusText("Informe um destino de teste."); setTesting(true); const res = await fetch("/api/automations/execute", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ automationId: testingId, recipient: testRecipient, contactName: testContactName, channel: selectedAutomation?.channel || nodes.find((i) => i.type === "entry")?.data.channel || "whatsapp" }) }); const data = await res.json(); setTesting(false); setStatusText(res.ok ? data.preview || "Teste concluído." : data.error || "Falha ao testar fluxo."); }
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      const updatedAt = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      setDraftVersion((current: number) => {
+        const nextVersion = current + 1;
+        window.localStorage.setItem(draftKey, JSON.stringify({ name, status, nodes, edges, updatedAt, version: nextVersion }));
+        return nextVersion;
+      });
+      setAutosaveLabel(`Salvo as ${updatedAt}`);
+    }, 700);
+    return () => window.clearTimeout(timeout);
+  }, [name, status, nodes, edges]);
 
-  return <section className="flow-workbench">
-    <aside className="flow-workbench-rail">
-      <section className="flow-rail-card"><div className="flow-rail-head"><div><span className="workspace-kicker">Modelos prontos</span><strong>Comece sem bagunça</strong></div><span className="mini">{TEMPLATES.length}</span></div><div className="flow-template-grid flow-template-grid-rail">{TEMPLATES.map((t) => <button className="flow-template-card" key={t.id} onClick={() => applyTemplate(t.id)} type="button"><span>template</span><strong>{t.title}</strong><p>{t.subtitle}</p></button>)}</div></section>
-      <section className="flow-rail-card"><div className="flow-rail-head"><div><span className="workspace-kicker">Biblioteca</span><strong>Blocos organizados</strong></div></div><div className="flow-builder-toolbar"><div className="flow-toolbar-actions"><button className="btn btn-secondary" disabled={!selectedNode} onClick={duplicate} type="button">Duplicar bloco</button><button className="btn btn-secondary" disabled={!history.length} onClick={undo} type="button">Desfazer</button><button className="btn btn-secondary" disabled={!future.length} onClick={redo} type="button">Refazer</button></div>{palette.map((group) => <div className="flow-toolbar-group" key={group.title}><span>{group.title}</span><div className="flow-toolbar-grid">{group.items.map((item) => <button className="flow-toolbar-node" key={item.id} onClick={() => addBlock(item)} type="button"><strong>{item.icon}</strong><div><span>{item.label}</span><small>{item.description}</small></div></button>)}</div></div>)}</div></section>
-      <section className="flow-rail-card"><div className="flow-rail-head"><div><span className="workspace-kicker">Fluxos salvos</span><strong>Sua biblioteca</strong></div><span className="mini">{automations.length}</span></div><div className="flow-library-list">{automations.length ? automations.map((item) => { const visual = decodeVisualTrigger(item.trigger), details = decodeTrigger(item.trigger); return <button className={`flow-library-item${testingId === item.id ? " flow-library-item-active" : ""}`} key={item.id} onClick={() => { setTestingId(item.id); if (visual) { const restored = fromCanvas(visual); setNodes(restored.nodes); setEdges(restored.edges); setName(item.name); setStatus(item.status); setSelectedId(restored.nodes[0]?.id || null); } setStatusText(visual ? `${visual.nodes.length} blocos carregados no canvas.` : `Fluxo ${details.keyword || item.name} selecionado.`); }} type="button"><div><strong>{item.name}</strong><span>{visual ? `${visual.nodes.length} blocos visuais` : item.channel}</span></div><span className={item.status === "Ativa" ? "tag tag-success" : "tag tag-warning"}>{item.status}</span></button>; }) : <div className="builder-empty-state"><strong>Nenhum fluxo salvo</strong><p className="mini">Monte um fluxo visual e salve para reaproveitar depois.</p></div>}</div></section>
-    </aside>
-    <form className="flow-workbench-main" onSubmit={saveFlow}>
-      <div className="flow-studio-header"><div><span className="workspace-kicker">Flow Studio</span><h2>Monte o fluxo de forma clara, sem apertar a tela.</h2><p>O canvas fica no centro, a biblioteca fica separada e cada bloco é editado sem modais confusos.</p></div><div className="flow-studio-actions"><span className="flow-autosave-chip">v{draftVersion} · {autosaveLabel}</span><input aria-label="Nome do fluxo" className="input" value={name} onChange={(e) => setName(e.target.value)} /><select className="select" value={status} onChange={(e) => setStatus(e.target.value)}><option value="Ativa">Ativa</option><option value="Rascunho">Rascunho</option></select></div></div>
-      <div className="flow-canvas-shell flow-canvas-shell-roomy"><ReactFlow<StudioNode, StudioEdge> nodes={nodes} edges={edges} nodeTypes={nodeTypes} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={(c: Connection) => { remember(); setEdges((x) => addEdge({ ...c, type: "smoothstep", animated: true, className: "flow-studio-edge" }, x)); }} onNodeClick={(_, node) => setSelectedId(node.id)} fitView fitViewOptions={{ padding: 0.22 }}><Background color="rgba(129,140,248,0.18)" gap={26} /><MiniMap pannable zoomable className="flow-minimap" /><Controls className="flow-controls" /></ReactFlow></div>
-      <div className="flow-studio-bottom"><div className={`flow-validation-panel${checked.valid ? " flow-validation-panel-valid" : ""}`}><strong>{checked.valid ? "Fluxo pronto para publicar" : "Ajustes antes de publicar"}</strong>{checked.issues.length ? <ul>{checked.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul> : <p className="mini">Entrada, mensagem e caminho principal estão conectados.</p>}</div><div className="flow-actions">{statusText ? <p className="flow-status-message">{statusText}</p> : null}<button className="btn btn-secondary" disabled={saving} type="submit" value="Rascunho">Salvar rascunho</button><button className="btn btn-primary" disabled={saving} type="submit" value="Ativa">{saving ? "Publicando..." : "Publicar fluxo"}</button></div></div>
-    </form>
-    <aside className="flow-studio-side">
-      <section className="flow-inspector-panel"><span className="workspace-kicker">Bloco selecionado</span>{selectedNode ? <>{selectedNode.type === "entry" ? <><label className="flow-field"><span>Nome</span><input className="input" value={selectedNode.data.label || ""} onChange={(e) => updateNode(selectedNode.id, { label: e.target.value })} /></label><div className="flow-two-columns"><label className="flow-field"><span>Canal</span><select className="select" value={selectedNode.data.channel || "whatsapp"} onChange={(e) => updateNode(selectedNode.id, { channel: e.target.value })}>{channels.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}</select></label><label className="flow-field"><span>Gatilho</span><select className="select" value={selectedNode.data.triggerType || "new_message"} onChange={(e) => updateNode(selectedNode.id, { triggerType: e.target.value as AutomationDetails["triggerType"] })}>{triggers.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}</select></label></div><label className="flow-field"><span>Palavra-chave</span><input className="input" value={selectedNode.data.keyword || ""} onChange={(e) => updateNode(selectedNode.id, { keyword: e.target.value })} /></label></> : null}{selectedNode.type === "message" ? <><label className="flow-field"><span>Mensagem</span><textarea className="textarea flow-message-box" value={selectedNode.data.message || ""} onChange={(e) => updateNode(selectedNode.id, { message: e.target.value })} /></label><label className="flow-field"><span>Respostas rápidas</span><input className="input" value={selectedNode.data.quickReplies || ""} onChange={(e) => updateNode(selectedNode.id, { quickReplies: e.target.value })} /></label><div className="flow-variable-row">{tokens.map((token) => <button key={token} onClick={() => updateNode(selectedNode.id, { message: `${selectedNode.data.message || ""}${selectedNode.data.message ? " " : ""}${token}` })} type="button">{token}</button>)}</div></> : null}{selectedNode.type === "wait" ? <label className="flow-field"><span>Tempo de espera</span><input className="input" min={0} type="number" value={selectedNode.data.delayMinutes || 0} onChange={(e) => updateNode(selectedNode.id, { delayMinutes: Number(e.target.value) })} /></label> : null}{selectedNode.type === "condition" ? <label className="flow-field"><span>Regra</span><input className="input" value={selectedNode.data.condition || ""} onChange={(e) => updateNode(selectedNode.id, { condition: e.target.value })} /></label> : null}{selectedNode.type === "action" ? <><label className="flow-field"><span>Tipo de ação</span><select className="select" value={selectedNode.data.actionType || "reply_same_channel"} onChange={(e) => updateNode(selectedNode.id, { actionType: e.target.value as AutomationDetails["actionType"] })}>{actions.map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}</select></label><label className="flow-field"><span>Mensagem complementar</span><textarea className="textarea flow-message-box-small" value={selectedNode.data.message || ""} onChange={(e) => updateNode(selectedNode.id, { message: e.target.value })} /></label>{selectedNode.data.category === "data" ? <div className="flow-two-columns"><label className="flow-field"><span>Variável</span><input className="input" value={selectedNode.data.variableName || ""} onChange={(e) => updateNode(selectedNode.id, { variableName: e.target.value })} /></label><label className="flow-field"><span>Valor</span><input className="input" value={selectedNode.data.variableValue || ""} onChange={(e) => updateNode(selectedNode.id, { variableValue: e.target.value })} /></label></div> : null}</> : null}</> : <div className="builder-empty-state"><strong>Selecione um bloco</strong><p className="mini">Clique em um bloco no canvas para editar o conteúdo.</p></div>}</section>
-      <section className="flow-inspector-panel"><span className="workspace-kicker">Preview da conversa</span><div className="flow-chat"><div className="flow-chat-bubble flow-chat-bubble-user"><span>Cliente</span><p>{compiled.triggerType === "new_message" ? "Olá, preciso de ajuda" : compiled.keyword || "quero"}</p></div>{preview.filter((i) => i.type !== "entry" && i.type !== "condition").map((i) => i.type === "wait" ? <div className="flow-chat-wait" key={i.id}>espera de {i.data.delayMinutes || 0} min</div> : <div className="flow-chat-bubble flow-chat-bubble-bot" key={i.id}><span>{i.type === "action" ? "Ação" : "Klio"}</span><p>{summary(i)}</p>{i.type === "message" && i.data.quickReplies ? <div className="flow-quick-replies">{i.data.quickReplies.split(/[|,]/).map((r) => <button key={r.trim()} type="button">{r.trim()}</button>)}</div> : null}</div>)}</div></section>
-      <section className="flow-inspector-panel"><div className="command-panel-head"><strong>Teste rápido</strong><span className="mini">Sem publicar de novo</span></div><label className="flow-field"><span>Fluxo para testar</span><select className="select" value={testingId} onChange={(e) => setTestingId(e.target.value)}><option value="">Selecione um fluxo</option>{automations.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}</select></label><div className="flow-two-columns"><label className="flow-field"><span>Contato</span><input className="input" value={testContactName} onChange={(e) => setTestContactName(e.target.value)} /></label><label className="flow-field"><span>Destino</span><input className="input" placeholder="5511999999999" value={testRecipient} onChange={(e) => setTestRecipient(e.target.value)} /></label></div><button className="btn btn-secondary flow-test-button" disabled={testing} onClick={testFlow} type="button">{testing ? "Testando..." : "Executar teste"}</button></section>
-    </aside>
-  </section>;
+  function remember() {
+    setHistory((current) => [...current.slice(-19), cloneFlow({ nodes, edges })]);
+    setFuture([]);
+  }
+
+  function applyTemplate(templateId: string) {
+    const template = templates.find((item) => item.id === templateId) || templates[0];
+    const nextFlow = cloneFlow({ nodes: template.nodes, edges: template.edges });
+    remember();
+    setNodes(nextFlow.nodes);
+    setEdges(nextFlow.edges);
+    setName(template.title);
+    setSelectedId(nextFlow.nodes[0]?.id || null);
+    setStatusText(`Template aplicado: ${template.title}. Agora deixe o texto com a cara da sua operacao.`);
+  }
+
+  function addBlock(item: PaletteItem) {
+    remember();
+    const nextNode = createNode(`${item.baseType}-${Date.now()}`, item.baseType, 140 + nodes.length * 40, 130 + nodes.length * 30, { ...item.data });
+    setNodes((current) => [...current, nextNode]);
+    setSelectedId(nextNode.id);
+    setStatusText(`Bloco adicionado: ${item.label}.`);
+  }
+
+  function duplicateSelectedNode() {
+    const selected = nodes.find((item) => item.id === selectedId);
+    if (!selected) return;
+    remember();
+    const copy = { ...selected, id: `${selected.type}-copy-${Date.now()}`, position: { x: selected.position.x + 44, y: selected.position.y + 44 }, data: { ...selected.data, label: `${selected.data.label} copia` } };
+    setNodes((current) => [...current, copy]);
+    setSelectedId(copy.id);
+    setStatusText("Bloco duplicado com sucesso.");
+  }
+
+  function updateNodeData(id: string, data: Partial<FlowNodeData>) {
+    remember();
+    setNodes((current) => current.map((item) => (item.id === id ? { ...item, data: { ...item.data, ...data } } : item)));
+  }
+
+  function undo() {
+    const previous = history.at(-1);
+    if (!previous) return;
+    setFuture((current) => [cloneFlow({ nodes, edges }), ...current.slice(0, 19)]);
+    setHistory((current) => current.slice(0, -1));
+    setNodes(previous.nodes);
+    setEdges(previous.edges);
+  }
+
+  function redo() {
+    const next = future[0];
+    if (!next) return;
+    setHistory((current) => [...current.slice(-19), cloneFlow({ nodes, edges })]);
+    setFuture((current) => current.slice(1));
+    setNodes(next.nodes);
+    setEdges(next.edges);
+  }
+
+  async function saveFlow(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const requestedStatus = submitter?.value || status;
+    const finalStatus = validation.valid ? requestedStatus : "Rascunho";
+    const canvas = toCanvas(nodes, edges);
+    const primaryMessage = previewSteps.find((item) => item.type === "message")?.data.message || "Mensagem automatica da Klio.";
+
+    setSaving(true);
+    const response = await fetch("/api/automations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        channel: nodes.find((item) => item.type === "entry")?.data.channel || "multi",
+        triggerType: canvas.legacyFallback.triggerType,
+        keyword: canvas.legacyFallback.keyword,
+        actionType: canvas.legacyFallback.actionType,
+        secondMessage: canvas.legacyFallback.secondMessage,
+        delayMinutes: canvas.legacyFallback.delayMinutes,
+        status: finalStatus,
+        message: primaryMessage,
+        canvas
+      })
+    });
+    const data = await response.json();
+    setSaving(false);
+    if (!response.ok) return setStatusText(data.error || "Nao foi possivel salvar o fluxo.");
+
+    setAutomations((current) => [data.automation, ...current]);
+    setTestingId(data.automation.id);
+    setStatus(finalStatus);
+    setStatusText(validation.valid ? (finalStatus === "Ativa" ? "Fluxo publicado com sucesso." : "Fluxo salvo como rascunho.") : "Fluxo salvo como rascunho. Ajuste os pontos pendentes antes de publicar.");
+  }
+
+  async function testFlow() {
+    if (!testingId) return setStatusText("Selecione ou salve um fluxo antes de testar.");
+    if (!testRecipient.trim()) return setStatusText("Informe um destino de teste.");
+
+    setTesting(true);
+    const response = await fetch("/api/automations/execute", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        automationId: testingId,
+        recipient: testRecipient,
+        contactName: testContactName,
+        channel: nodes.find((item) => item.type === "entry")?.data.channel || "whatsapp"
+      })
+    });
+    const data = await response.json();
+    setTesting(false);
+    setStatusText(response.ok ? data.preview || "Teste concluido." : data.error || "Falha ao testar fluxo.");
+  }
+
+  return (
+    <section className="flow-studio-v2">
+      <section className="flow-overview-strip">
+        <div className="flow-overview-hero">
+          <span className="workspace-kicker">Flow Studio</span>
+          <h2>Automacoes com mais contexto, menos confusao visual.</h2>
+          <p>Templates, canvas e edicao agora ficam mais separados para voce montar a operacao sem se perder na tela.</p>
+        </div>
+        <div className="flow-overview-grid">
+          <div className="flow-overview-card"><span>Fluxos salvos</span><strong>{automations.length}</strong><small>Biblioteca pronta para reaproveitar.</small></div>
+          <div className="flow-overview-card"><span>Ativos</span><strong>{activeCount}</strong><small>Fluxos que podem rodar agora.</small></div>
+          <div className="flow-overview-card"><span>Rascunhos</span><strong>{draftCount}</strong><small>Automacoes aguardando revisao.</small></div>
+          <div className="flow-overview-card"><span>Templates</span><strong>{templates.length}</strong><small>Atalhos para comecar sem travar.</small></div>
+        </div>
+      </section>
+
+      <section className="flow-workbench">
+        <aside className="flow-workbench-rail">
+          <section className="flow-rail-card">
+            <div className="flow-rail-head">
+              <div><span className="workspace-kicker">Inicio rapido</span><strong>Escolha um template</strong></div>
+              <span className="mini">{templates.length} modelos</span>
+            </div>
+            <div className="flow-template-grid flow-template-grid-rail">
+              {templates.map((template) => (
+                <button className="flow-template-card" key={template.id} type="button" onClick={() => applyTemplate(template.id)}>
+                  <span>template</span>
+                  <strong>{template.title}</strong>
+                  <p>{template.subtitle}</p>
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="flow-rail-card">
+            <div className="flow-rail-head">
+              <div><span className="workspace-kicker">Biblioteca de blocos</span><strong>Adicione etapas sem poluicao</strong></div>
+            </div>
+            <div className="flow-builder-toolbar">
+              <div className="flow-toolbar-actions">
+                <button className="btn btn-secondary" disabled={!selectedNode} onClick={duplicateSelectedNode} type="button">Duplicar</button>
+                <button className="btn btn-secondary" disabled={!history.length} onClick={undo} type="button">Desfazer</button>
+                <button className="btn btn-secondary" disabled={!future.length} onClick={redo} type="button">Refazer</button>
+              </div>
+              {paletteGroups.map((group) => (
+                <div className="flow-toolbar-group" key={group.title}>
+                  <span>{group.title}</span>
+                  <div className="flow-toolbar-grid">
+                    {group.items.map((item) => (
+                      <button className="flow-toolbar-node" key={item.id} type="button" onClick={() => addBlock(item)}>
+                        <strong>{item.icon}</strong>
+                        <div><span>{item.label}</span><small>{item.description}</small></div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="flow-rail-card">
+            <div className="flow-rail-head">
+              <div><span className="workspace-kicker">Biblioteca</span><strong>Fluxos que voce ja montou</strong></div>
+              <span className="mini">{automations.length}</span>
+            </div>
+            <div className="flow-library-list">
+              {automations.length ? (
+                automations.map((item) => {
+                  const visual = decodeVisualTrigger(item.trigger);
+                  return (
+                    <button
+                      className={`flow-library-item${testingId === item.id ? " flow-library-item-active" : ""}`}
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setTestingId(item.id);
+                        if (visual) {
+                          const restored = fromCanvas(visual);
+                          setNodes(restored.nodes);
+                          setEdges(restored.edges);
+                          setName(item.name);
+                          setStatus(item.status);
+                          setSelectedId(restored.nodes[0]?.id || null);
+                          setStatusText(`Fluxo "${item.name}" carregado no canvas.`);
+                        }
+                      }}
+                    >
+                      <div>
+                        <strong>{item.name}</strong>
+                        <span>{visual ? `${visual.nodes.length} blocos visuais` : item.channel}</span>
+                      </div>
+                      <span className={item.status === "Ativa" ? "tag tag-success" : "tag tag-warning"}>{item.status}</span>
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="builder-empty-state">
+                  <strong>Nenhum fluxo salvo</strong>
+                  <p className="mini">Monte uma automacao visual e salve para reaproveitar depois.</p>
+                </div>
+              )}
+            </div>
+          </section>
+        </aside>
+
+        <form className="flow-workbench-main flow-workbench-main-v2" onSubmit={saveFlow}>
+          <div className="flow-command-bar">
+            <div className="flow-command-copy">
+              <span className="workspace-kicker">Canvas principal</span>
+              <strong>{name}</strong>
+              <p>{statusText}</p>
+            </div>
+            <div className="flow-command-actions">
+              <span className="flow-autosave-chip">v{draftVersion} · {autosaveLabel}</span>
+              <input aria-label="Nome do fluxo" className="input" value={name} onChange={(event) => setName(event.target.value)} />
+              <select className="select" value={status} onChange={(event) => setStatus(event.target.value)}>
+                <option value="Ativa">Ativa</option>
+                <option value="Rascunho">Rascunho</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flow-canvas-frame">
+            <div className="flow-canvas-note">
+              <span>Entrada</span>
+              <span>Mensagem</span>
+              <span>Espera</span>
+              <span>Acao</span>
+            </div>
+            <div className="flow-canvas-shell flow-canvas-shell-roomy">
+              <ReactFlow<StudioNode, StudioEdge>
+                nodes={nodes}
+                edges={edges}
+                nodeTypes={nodeTypes}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={(connection: Connection) => {
+                  remember();
+                  setEdges((current) => addEdge({ ...connection, type: "smoothstep", animated: true, className: "flow-studio-edge" }, current));
+                }}
+                onNodeClick={(_, node) => setSelectedId(node.id)}
+                fitView
+                fitViewOptions={{ padding: 0.2 }}
+              >
+                <Background color="rgba(129,140,248,0.16)" gap={26} />
+                <MiniMap pannable zoomable className="flow-minimap" />
+                <Controls className="flow-controls" />
+              </ReactFlow>
+            </div>
+          </div>
+
+          <div className="flow-studio-bottom">
+            <div className={`flow-validation-panel${validation.valid ? " flow-validation-panel-valid" : ""}`}>
+              <strong>{validation.valid ? "Fluxo pronto para publicar" : "Ajustes antes de publicar"}</strong>
+              {validation.issues.length ? (
+                <ul>{validation.issues.map((issue) => <li key={issue}>{issue}</li>)}</ul>
+              ) : (
+                <p className="mini">Entrada, mensagem e caminho principal estao conectados.</p>
+              )}
+            </div>
+            <div className="flow-actions">
+              <button className="btn btn-secondary" disabled={saving} type="submit" value="Rascunho">Salvar rascunho</button>
+              <button className="btn btn-primary" disabled={saving} type="submit" value="Ativa">{saving ? "Publicando..." : "Publicar fluxo"}</button>
+            </div>
+          </div>
+        </form>
+
+        <aside className="flow-studio-side">
+          <InspectorPanel nodeItem={selectedNode} onUpdate={updateNodeData} />
+
+          <section className="flow-inspector-panel">
+            <span className="workspace-kicker">Preview da conversa</span>
+            <div className="flow-chat">
+              <div className="flow-chat-bubble flow-chat-bubble-user">
+                <span>Cliente</span>
+                <p>{fallback.triggerType === "new_message" ? "Ola, preciso de ajuda" : fallback.keyword || "quero"}</p>
+              </div>
+              {previewSteps
+                .filter((item) => item.type !== "entry" && item.type !== "condition")
+                .map((item) =>
+                  item.type === "wait" ? (
+                    <div className="flow-chat-wait" key={item.id}>
+                      espera de {item.data.delayMinutes || 0} min
+                    </div>
+                  ) : (
+                    <div className="flow-chat-bubble flow-chat-bubble-bot" key={item.id}>
+                      <span>{item.type === "action" ? "Acao" : "Klio"}</span>
+                      <p>{getNodeSummary(item)}</p>
+                      {item.type === "message" && item.data.quickReplies ? (
+                        <div className="flow-quick-replies">
+                          {item.data.quickReplies.split(/[|,]/).map((reply) => (
+                            <button key={reply.trim()} type="button">
+                              {reply.trim()}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  )
+                )}
+            </div>
+          </section>
+
+          <section className="flow-inspector-panel">
+            <div className="command-panel-head">
+              <strong>Teste rapido</strong>
+              <span className="mini">Executa sem republicar</span>
+            </div>
+            <label className="flow-field">
+              <span>Fluxo para testar</span>
+              <select className="select" value={testingId} onChange={(event) => setTestingId(event.target.value)}>
+                <option value="">Selecione um fluxo</option>
+                {automations.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
+              </select>
+            </label>
+            <div className="flow-two-columns">
+              <label className="flow-field">
+                <span>Contato</span>
+                <input className="input" value={testContactName} onChange={(event) => setTestContactName(event.target.value)} />
+              </label>
+              <label className="flow-field">
+                <span>Destino</span>
+                <input className="input" placeholder="5511999999999" value={testRecipient} onChange={(event) => setTestRecipient(event.target.value)} />
+              </label>
+            </div>
+            <button className="btn btn-secondary flow-test-button" disabled={testing} onClick={testFlow} type="button">
+              {testing ? "Testando..." : "Executar teste"}
+            </button>
+          </section>
+        </aside>
+      </section>
+    </section>
+  );
 }
