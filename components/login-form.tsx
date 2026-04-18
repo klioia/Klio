@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 
 const googleIcon = (
   <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24">
@@ -69,7 +68,6 @@ function EyeIcon({ open }: { open: boolean }) {
 }
 
 export function LoginForm() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -95,8 +93,11 @@ export function LoginForm() {
       return;
     }
 
-    router.push("/dashboard");
-    router.refresh();
+    window.location.assign("/dashboard");
+  }
+
+  function handleGoogleLogin() {
+    setError("Não foi possível conectar com o Google. Tente novamente.");
   }
 
   return (
@@ -159,17 +160,22 @@ export function LoginForm() {
         <span>ou continue com</span>
       </div>
 
-      <button className="auth-google-button" type="button">
+      <button className="auth-google-button" type="button" onClick={handleGoogleLogin}>
         {googleIcon}
         <span>Continuar com Google</span>
       </button>
 
       <p className="auth-footer-copy">
         Não tem conta?{" "}
-        <Link href="/register">
-          Criar conta grátis
-        </Link>
+        <Link href="/register">Criar conta grátis</Link>
       </p>
+
+      {loading ? (
+        <div className="auth-loading-screen" aria-live="polite">
+          <span className="spinner" aria-hidden="true" />
+          <strong>Entrando na sua operação...</strong>
+        </div>
+      ) : null}
     </form>
   );
 }

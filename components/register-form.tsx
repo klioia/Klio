@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 
 function BuildingIcon() {
   return (
@@ -66,7 +65,6 @@ function EyeIcon({ open }: { open: boolean }) {
 }
 
 export function RegisterForm() {
-  const router = useRouter();
   const [company, setCompany] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -83,6 +81,27 @@ export function RegisterForm() {
     setLoading(true);
     setError("");
 
+    const normalizedEmail = email.trim().toLowerCase();
+    const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+
+    if (!company.trim() || !name.trim() || !normalizedEmail || !password || !confirmPassword) {
+      setError("Preencha todos os campos obrigatórios.");
+      setLoading(false);
+      return;
+    }
+
+    if (!validEmail) {
+      setError("Informe um e-mail válido.");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("A senha precisa ter pelo menos 8 caracteres.");
+      setLoading(false);
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("As senhas não conferem.");
       setLoading(false);
@@ -98,7 +117,7 @@ export function RegisterForm() {
     const response = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ company, name, email, password })
+      body: JSON.stringify({ company: company.trim(), name: name.trim(), email: normalizedEmail, password })
     });
 
     const data = await response.json();
@@ -109,43 +128,28 @@ export function RegisterForm() {
       return;
     }
 
-    router.push("/dashboard");
-    router.refresh();
+    window.location.assign("/dashboard");
   }
 
   return (
     <form onSubmit={handleSubmit} className="auth-form-stack">
       <label className="auth-field">
-        <span className="auth-label">Nome da empresa</span>
+        <span className="auth-label">Empresa</span>
         <div className="auth-input-shell">
           <span className="auth-input-icon" aria-hidden="true">
             <BuildingIcon />
           </span>
-          <input
-            className="auth-input"
-            placeholder="Minha empresa"
-            value={company}
-            onChange={(event) => setCompany(event.target.value)}
-            autoComplete="organization"
-            required
-          />
+          <input className="auth-input" placeholder="Minha empresa" value={company} onChange={(event) => setCompany(event.target.value)} autoComplete="organization" required />
         </div>
       </label>
 
       <label className="auth-field">
-        <span className="auth-label">Seu nome</span>
+        <span className="auth-label">Nome do admin</span>
         <div className="auth-input-shell">
           <span className="auth-input-icon" aria-hidden="true">
             <UserIcon />
           </span>
-          <input
-            className="auth-input"
-            placeholder="Seu nome"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            autoComplete="name"
-            required
-          />
+          <input className="auth-input" placeholder="Seu nome" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" required />
         </div>
       </label>
 
@@ -155,14 +159,7 @@ export function RegisterForm() {
           <span className="auth-input-icon" aria-hidden="true">
             <MailIcon />
           </span>
-          <input
-            className="auth-input"
-            placeholder="voce@empresa.com"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-            required
-          />
+          <input className="auth-input" placeholder="voce@empresa.com" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" required />
         </div>
       </label>
 
@@ -181,12 +178,7 @@ export function RegisterForm() {
             autoComplete="new-password"
             required
           />
-          <button
-            className="auth-input-action"
-            type="button"
-            onClick={() => setShowPassword((state) => !state)}
-            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-          >
+          <button className="auth-input-action" type="button" onClick={() => setShowPassword((state) => !state)} aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}>
             <EyeIcon open={showPassword} />
           </button>
         </div>
@@ -225,9 +217,7 @@ export function RegisterForm() {
         </span>
       </label>
 
-      <p className="auth-helper-copy">
-        Crie sua conta e comece a automatizar o atendimento em menos de 5 minutos.
-      </p>
+      <p className="auth-helper-copy">Crie sua conta e comece a automatizar o atendimento em menos de 5 minutos.</p>
 
       {error ? <p className="auth-feedback auth-feedback-error">{error}</p> : null}
 
@@ -237,11 +227,15 @@ export function RegisterForm() {
       </button>
 
       <p className="auth-footer-copy">
-        Já tem conta?{" "}
-        <Link href="/login">
-          Entrar
-        </Link>
+        Já tem conta? <Link href="/login">Entrar</Link>
       </p>
+
+      {loading ? (
+        <div className="auth-loading-screen" aria-live="polite">
+          <span className="spinner" aria-hidden="true" />
+          <strong>Entrando na sua operação...</strong>
+        </div>
+      ) : null}
     </form>
   );
 }

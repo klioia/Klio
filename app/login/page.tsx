@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/auth-shell";
 import { LoginForm } from "@/components/login-form";
 import { Topbar } from "@/components/topbar";
+import { getSession } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Entrar na Klio",
@@ -19,7 +21,13 @@ export const metadata: Metadata = {
   }
 };
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const session = await getSession();
+
+  if (session) {
+    redirect("/dashboard");
+  }
+
   return (
     <>
       <Topbar compactAuth />
@@ -28,11 +36,7 @@ export default function LoginPage() {
         title="Bem-vindo de volta"
         subtitle="Acesse sua operação"
         heading="Sua operação no piloto automático."
-        bullets={[
-          "IA respondendo em segundos",
-          "Fluxos multicanal ativos",
-          "Equipe focada no que importa"
-        ]}
+        bullets={["IA respondendo em segundos", "Fluxos multicanal ativos", "Equipe focada no que importa"]}
         quote={{
           initials: "LM",
           name: "Larissa Moura",

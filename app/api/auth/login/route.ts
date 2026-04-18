@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     ok: true,
+    redirectTo: "/dashboard",
     user: {
       id: user.id,
       name: user.name,

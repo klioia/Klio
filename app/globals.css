@@ -2166,6 +2166,7 @@ button, input, select, textarea { font: inherit; }
 .auth-form-stack {
   display: grid;
   gap: 16px;
+  position: relative;
 }
 .auth-field {
   display: grid;
@@ -2269,6 +2270,23 @@ button, input, select, textarea { font: inherit; }
 .auth-google-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+.auth-loading-screen {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 24px;
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+.auth-loading-screen strong {
+  font-size: 15px;
+  color: #f8fafc;
 }
 .auth-divider-line {
   position: relative;
