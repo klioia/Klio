@@ -10,7 +10,7 @@ export default async function ScheduledPage() {
 
   function getRemainingText(dateString: string, status: string) {
     if (status !== "pending") {
-      return "Ja processado";
+      return "Já processado";
     }
 
     const diff = new Date(dateString).getTime() - Date.now();
@@ -27,13 +27,13 @@ export default async function ScheduledPage() {
     <AppShell
       userName={session.name}
       title="Fila de execução agendada"
-      description="Acompanhe as proximas etapas da automacao, com horario previsto, status e visibilidade de cada disparo."
+      description="Acompanhe as próximas etapas da automação, com horário previsto, status e visibilidade de cada disparo."
     >
       <div className="card panel orchestration-panel" style={{ marginBottom: 24 }}>
         <div className="orchestration-header">
           <div>
             <strong>Scheduler da Klio</strong>
-            <div className="mini">Controle de etapas futuras e reengajamentos automaticos</div>
+            <div className="mini">Controle de etapas futuras e reengajamentos automáticos</div>
           </div>
           <span className="pricing-badge">fila viva</span>
         </div>

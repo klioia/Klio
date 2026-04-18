@@ -7,11 +7,7 @@ export default async function WorkerPage() {
   const state = await getWorkerState();
 
   return (
-    <AppShell
-      userName={session.name}
-      title="Worker da fila."
-      description="Aqui voce acompanha o processador backend da fila da Klio."
-    >
+    <AppShell userName={session.name} title="Worker da fila" description="Aqui você acompanha o processador backend da fila da Klio.">
       <section className="card panel">
         <div className="flow-item">
           <div>
@@ -24,7 +20,7 @@ export default async function WorkerPage() {
           <span className="tag tag-warning">
             Última execução: {state.lastRunAt ? new Date(state.lastRunAt).toLocaleString("pt-BR") : "nunca"}
           </span>
-          <span className="tag tag-warning">Ultimo lote: {state.lastProcessed}</span>
+          <span className="tag tag-warning">Último lote: {state.lastProcessed}</span>
           <span className="tag tag-warning">Pendentes: {state.pending}</span>
         </div>
       </section>

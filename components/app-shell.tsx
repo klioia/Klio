@@ -13,31 +13,6 @@ type AppShellProps = {
   children: ReactNode;
 };
 
-const navGroups = [
-  {
-    label: "Operação",
-    items: [
-      { href: "/dashboard", label: "Overview", description: "Visão geral da operação", icon: "grid" },
-      { href: "/leads", label: "Leads", description: "Fila e histórico de conversas", icon: "users" },
-      { href: "/automations", label: "Fluxos", description: "Biblioteca e lógica ativa", icon: "workflow" }
-    ]
-  },
-  {
-    label: "Execução",
-    items: [
-      { href: "/executions", label: "Execuções", description: "Disparos e auditoria", icon: "pulse" },
-      { href: "/scheduled", label: "Agendados", description: "Próximas etapas da fila", icon: "clock" },
-      { href: "/worker", label: "Worker", description: "Motor e processamento", icon: "bolt" }
-    ]
-  },
-  {
-    label: "Configuração",
-    items: [
-      { href: "/integrations", label: "Integrações", description: "Canais e credenciais", icon: "plug" }
-    ]
-  }
-];
-
 const productNavGroups = [
   {
     label: "Operação",
@@ -78,7 +53,12 @@ function WorkspaceIcon({ name }: { name: string }) {
         <svg viewBox="0 0 20 20" fill="none">
           <circle cx="7" cy="7.25" r="2.25" stroke="currentColor" strokeWidth="1.5" />
           <circle cx="13.5" cy="8" r="1.75" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M3.75 14c.48-1.87 2.04-2.875 3.95-2.875 1.9 0 3.46 1.005 3.925 2.875M11.75 13.75c.308-1.311 1.367-2.125 2.75-2.125 1.016 0 1.896.44 2.375 1.25" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path
+            d="M3.75 14c.48-1.87 2.04-2.875 3.95-2.875 1.9 0 3.46 1.005 3.925 2.875M11.75 13.75c.308-1.311 1.367-2.125 2.75-2.125 1.016 0 1.896.44 2.375 1.25"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
         </svg>
       );
     case "workflow":
@@ -108,12 +88,6 @@ function WorkspaceIcon({ name }: { name: string }) {
           <path d="M10 6.5v4l2.75 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       );
-    case "bolt":
-      return (
-        <svg viewBox="0 0 20 20" fill="none">
-          <path d="M10.625 2.75 5.75 10h3.25l-.625 7.25L13.75 10H10.5l.125-7.25Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      );
     case "chart":
       return (
         <svg viewBox="0 0 20 20" fill="none">
@@ -125,7 +99,19 @@ function WorkspaceIcon({ name }: { name: string }) {
       return (
         <svg viewBox="0 0 20 20" fill="none">
           <circle cx="10" cy="10" r="2.25" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M10 3.5v2M10 14.5v2M4.37 6.25l1.73 1M13.9 12.75l1.73 1M4.37 13.75l1.73-1M13.9 7.25l1.73-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path
+            d="M10 3.5v2M10 14.5v2M4.37 6.25l1.73 1M13.9 12.75l1.73 1M4.37 13.75l1.73-1M13.9 7.25l1.73-1"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+        </svg>
+      );
+    case "plug":
+      return (
+        <svg viewBox="0 0 20 20" fill="none">
+          <path d="M7 4.25v4.5M13 4.25v4.5M6 8.75h8v1.5a4 4 0 1 1-8 0v-1.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M10 14.75V17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       );
     default:
@@ -154,11 +140,8 @@ export function AppShell({ userName, title, description, children }: AppShellPro
           </div>
 
           <div className="workspace-status-card">
-            <span className="workspace-kicker">Workspace</span>
+            <span className="workspace-nav-label">Workspace</span>
             <strong>Klio Command Center</strong>
-            <p className="mini">
-              Toda a operação de automação, atendimento e repasse organizada em um único núcleo.
-            </p>
             <div className="workspace-status-list">
               <div className="workspace-status-row">
                 <span>Monitoramento</span>
@@ -183,11 +166,7 @@ export function AppShell({ userName, title, description, children }: AppShellPro
                   {group.items.map((item) => {
                     const active = pathname === item.href;
                     return (
-                      <Link
-                        className={`workspace-nav-link${active ? " workspace-nav-link-active" : ""}`}
-                        href={item.href}
-                        key={item.href}
-                      >
+                      <Link className={`workspace-nav-link${active ? " workspace-nav-link-active" : ""}`} href={item.href} key={item.href}>
                         <span className="workspace-nav-icon" aria-hidden="true">
                           <WorkspaceIcon name={item.icon} />
                         </span>
@@ -204,10 +183,9 @@ export function AppShell({ userName, title, description, children }: AppShellPro
           </nav>
 
           <div className="workspace-sidebar-foot">
-            <div className="workspace-trust-card">
-              <span className="workspace-kicker">Segurança visual</span>
-              <strong>Sessão protegida</strong>
-              <p className="mini">Acesso com credenciais seguras, logout rápido e contexto operacional preservado.</p>
+            <div className="workspace-session-inline">
+              <span className="workspace-session-dot" />
+              <span>Sessão segura</span>
             </div>
             <LogoutButton className="workspace-logout-button" />
           </div>

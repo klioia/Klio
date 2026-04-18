@@ -35,10 +35,7 @@ export default async function DashboardPage() {
 
   const pendingJobs = scheduledJobs.filter((job) => job.status === "pending").length;
   const activeAutomations = automations.filter((item) => item.status === "Ativa").length;
-  const integrationsReady = [
-    integrations.whatsapp?.connected,
-    integrations.instagram?.connected
-  ].filter(Boolean).length;
+  const integrationsReady = [integrations.whatsapp?.connected, integrations.instagram?.connected].filter(Boolean).length;
   const coverage = Math.round((integrationsReady / 2) * 100);
   const automationReadiness = automations.length ? Math.round((activeAutomations / automations.length) * 100) : 0;
   const successfulExecutions = executions.filter((item) => !item.status.includes("error") && !item.status.includes("failed")).length;
@@ -79,7 +76,7 @@ export default async function DashboardPage() {
       ? "WhatsApp validado para testes e produção."
       : "Conecte o WhatsApp para iniciar testes com número real.",
     integrations.instagram?.connected
-      ? "Instagram pronto para DM e comentário."
+      ? "Instagram pronto para DM e comentários."
       : "Conecte o Instagram para centralizar comentários e mensagens.",
     activeAutomations
       ? "Fluxos ativos disponíveis para disparo e acompanhamento."
@@ -206,14 +203,14 @@ export default async function DashboardPage() {
           <div className="live-feed-list">
             {inboxItems.length ? (
               inboxItems.map((item) => (
-              <div className="live-feed-item" key={item.id}>
-                <div>
-                  <strong>{item.name}</strong>
-                  <div className="mini">{item.channel}</div>
-                  <p>{item.lastMessage}</p>
+                <div className="live-feed-item" key={item.id}>
+                  <div>
+                    <strong>{item.name}</strong>
+                    <div className="mini">{item.channel}</div>
+                    <p>{item.lastMessage}</p>
+                  </div>
+                  <span className="tag tag-success">{item.stage}</span>
                 </div>
-                <span className="tag tag-success">{item.stage}</span>
-              </div>
               ))
             ) : (
               <div className="builder-empty-state">

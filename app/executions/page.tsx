@@ -34,14 +34,14 @@ export default async function ExecutionsPage() {
     <AppShell
       userName={session.name}
       title="Execuções e debug"
-      description="Acompanhe cada disparo, veja os nós executados e descubra onde um fluxo precisa de atenção."
+      description="Acompanhe cada disparo, veja os blocos executados e descubra onde um fluxo precisa de atenção."
     >
       <section className="execution-console">
         <div className="execution-overview">
           <div>
             <span className="workspace-kicker">Monitoramento</span>
             <h2>Debug operacional dos fluxos.</h2>
-            <p>Timeline por nó, saída gerada, destino e status de entrega em uma visão única.</p>
+            <p>Timeline por bloco, saída gerada, destino e status de entrega em uma visão única.</p>
           </div>
           <div className="execution-kpis">
             <div>
@@ -138,7 +138,7 @@ export default async function ExecutionsPage() {
             <div className="execution-empty">
               <span className="workspace-kicker">Sem execuções</span>
               <h3>Nenhum fluxo rodou ainda.</h3>
-              <p>Crie um fluxo no Flow Studio e use “Enviar teste” para gerar o primeiro histórico de debug.</p>
+              <p>Crie um fluxo no Flow Studio e use “Executar teste” para gerar o primeiro histórico de debug.</p>
               <a className="btn btn-primary" href="/automations">
                 Abrir Flow Studio
               </a>
