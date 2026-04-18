@@ -67,33 +67,18 @@ function EyeIcon({ open }: { open: boolean }) {
   );
 }
 
-export function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+type LoginFormProps = {
+  initialError?: string;
+};
+
+export function LoginForm({ initialError = "" }: LoginFormProps) {
+  const [error, setError] = useState(initialError);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function handleSubmit() {
     setLoading(true);
     setError("");
-
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      setError(data.error ?? "Falha ao entrar.");
-      setLoading(false);
-      return;
-    }
-
-    window.location.assign("/dashboard");
   }
 
   function handleGoogleLogin() {
@@ -101,21 +86,16 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="auth-form-stack">
+    <form onSubmit={handleSubmit} className="auth-form-stack" action="/api/auth/login" method="post">
+      <input type="hidden" name="redirectTo" value="/dashboard" />
+
       <label className="auth-field">
         <span className="auth-label">Email</span>
         <div className="auth-input-shell">
           <span className="auth-input-icon" aria-hidden="true">
             <MailIcon />
           </span>
-          <input
-            className="auth-input"
-            placeholder="voce@empresa.com"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-            required
-          />
+          <input className="auth-input" placeholder="voce@empresa.com" name="email" autoComplete="email" required />
         </div>
       </label>
 
@@ -125,21 +105,8 @@ export function LoginForm() {
           <span className="auth-input-icon" aria-hidden="true">
             <LockIcon />
           </span>
-          <input
-            className="auth-input auth-input-with-action"
-            type={showPassword ? "text" : "password"}
-            placeholder="Digite sua senha"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="current-password"
-            required
-          />
-          <button
-            className="auth-input-action"
-            type="button"
-            onClick={() => setShowPassword((state) => !state)}
-            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-          >
+          <input className="auth-input auth-input-with-action" type={showPassword ? "text" : "password"} name="password" placeholder="Digite sua senha" autoComplete="current-password" required />
+          <button className="auth-input-action" type="button" onClick={() => setShowPassword((state) => !state)} aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}>
             <EyeIcon open={showPassword} />
           </button>
         </div>
@@ -166,8 +133,7 @@ export function LoginForm() {
       </button>
 
       <p className="auth-footer-copy">
-        Não tem conta?{" "}
-        <Link href="/register">Criar conta grátis</Link>
+        Não tem conta? <Link href="/register">Criar conta grátis</Link>
       </p>
 
       {loading ? (

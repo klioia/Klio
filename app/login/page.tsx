@@ -21,8 +21,13 @@ export const metadata: Metadata = {
   }
 };
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams
+}: {
+  searchParams?: Promise<{ error?: string }>;
+}) {
   const session = await getSession();
+  const params = await searchParams;
 
   if (session) {
     redirect("/dashboard");
@@ -44,7 +49,7 @@ export default async function LoginPage() {
           text: "A Klio transformou nosso atendimento em uma operação muito mais rápida, elegante e previsível."
         }}
       >
-        <LoginForm />
+        <LoginForm initialError={params?.error || ""} />
       </AuthShell>
     </>
   );
